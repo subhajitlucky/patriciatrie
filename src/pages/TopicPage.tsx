@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Lightbulb, PlayCircle, Hash, Database } from 'lucide-react';
+import { ArrowLeft, Lightbulb, PlayCircle, Database } from 'lucide-react';
 import { topicData } from '../utils/topicContent';
 import NibbleVisualizer from '../components/visualizers/NibbleVisualizer';
 import { MerklePatriciaTrie } from '../utils/mpt';
