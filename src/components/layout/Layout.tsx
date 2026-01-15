@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Box, BookOpen, Play, Github } from 'lucide-react';
+import { Box, Github } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -18,9 +18,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
 
   const navItems = [
-    { path: '/', label: 'Home', icon: Box },
-    { path: '/learn', label: 'Learn', icon: BookOpen },
-    { path: '/playground', label: 'Playground', icon: Play },
+    { path: '/', label: 'Home' },
+    { path: '/learn', label: 'Learn' },
+    { path: '/playground', label: 'Playground' },
   ];
 
   return (
@@ -36,7 +36,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
           <nav className="hidden md:flex items-center gap-1">
             {navItems.map((item) => {
-              const Icon = item.icon;
               const isActive = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path));
               return (
                 <Link
@@ -49,7 +48,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                       : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800"
                   )}
                 >
-                  <Icon size={16} />
                   {item.label}
                 </Link>
               );
