@@ -53,29 +53,29 @@ export const topicData: Record<string, TopicContent> = {
   },
   'node-types': {
     id: 'node-types',
-    title: 'Branch, Extension, Leaf',
-    definition: 'The architecture employs three distinct node types to implement path compression and handle sparse key distributions efficiently.',
-    analogy: 'A subway system: Branch nodes are transfer stations, Extension nodes are long express tunnels, and Leaf nodes are the final exits.',
-    deepDive: 'In a sparse trie, many branches may lead to only a single child. Extension nodes collapse these single-child chains into a "shared path" string, preventing the creation of deep, empty branch chains and drastically reducing storage footprint.',
+    title: 'Node Archetypes: Branch, Extension, Leaf',
+    definition: 'To achieve path compression and efficient RLP-encoding, the trie implements three specialized node architectures that optimize for both sparse and dense key distributions.',
+    analogy: 'A high-speed rail network: Branch nodes are the switching stations, Extension nodes are the long-haul express tracks, and Leaf nodes are the final terminal platforms.',
+    deepDive: 'The Branch node is a 17-element array: 16 slots for nibbles (0-F) and 1 for a value. Extension nodes act as "Path Shortcuts," storing a partial nibble sequence and a single child pointer. Leaf nodes terminate the path, containing the final key suffix and the RLP-encoded value (e.g., account balance, nonce, or code hash).',
     steps: [
-      { title: 'Branch Node', description: 'A 17-element array (16 child pointers + 1 value). It represents a divergence in the key paths.' },
-      { title: 'Extension Node', description: 'An optimization that stores a partial path and a single pointer to a child Branch node.' },
-      { title: 'Leaf Node', description: 'The terminal node containing the final path suffix and the actual RLP-encoded state value.' }
+      { title: 'Radix Divergence', description: 'Branch nodes facilitate multi-way branching, allowing the trie to handle up to 16 children per level.' },
+      { title: 'Pointer Integrity', description: 'Every pointer in a Branch or Extension node is actually the 32-byte Keccak-256 hash of the child node it references.' },
+      { title: 'Value Termination', description: 'Leaf nodes provide the ultimate mapping, where the cryptographic path finally resolves to concrete state data.' }
     ],
-    visualType: 'nodes'
+    visualType: 'archetypes'
   },
   'path-compression': {
     id: 'path-compression',
-    title: 'Path Compression',
-    definition: 'Path compression is a space-optimization technique where non-branching paths are collapsed into a single node, ensuring the trie depth is proportional to the number of common prefixes.',
-    analogy: 'Instead of having a separate door for every meter of a long hallway, you just have one door at the start and the highway takes you straight to the end.',
-    deepDive: 'Formally, this transforms the Trie into a Radix Tree. In the context of Ethereum, it prevents an attacker from creating "shallow" accounts that force the network to process 64 levels of branching for a single lookup.',
+    title: 'Path Compression & Optimization',
+    definition: 'Path compression transforms a standard Trie into a Radix Tree by collapsing non-branching node sequences into a single atomic "Extension" node.',
+    analogy: 'Instead of having a separate zip code for every single house on a long private road, the entire road shares a single prefix, and you only distinguish the houses at the very end.',
+    deepDive: 'In a sparse blockchain state (like Ethereum), most paths lead to only one child for many consecutive levels. Without compression, searching for an account would require 64 disk reads (one per nibble). Compression collapses these into 1-2 reads, drastically reducing I/O latency and gas costs for state lookups.',
     steps: [
-      { title: 'Path Merging', description: 'Consecutive single-child nodes are concatenated into a single Extension node path.' },
-      { title: 'Node Rebalancing', description: 'When a new key diverges from an existing Extension, the node is "split" into an Extension, a Branch, and a new Leaf.' },
-      { title: 'Storage Efficiency', description: 'Reduces the total number of hashes stored in the database by multiple orders of magnitude.' }
+      { title: 'Sequence Collapsing', description: 'Consecutive nodes with only one child are merged into a single Extension node containing the shared nibble path.' },
+      { title: 'Dynamic Splitting', description: 'When a new key is inserted that partially matches an Extension path, the node is dynamically split into a new Branch and two children.' },
+      { title: 'I/O Efficiency', description: 'Path compression is the primary reason why Merkle Patricia Tries can scale to handle billions of accounts with sub-millisecond lookup times.' }
     ],
-    visualType: 'nodes'
+    visualType: 'compression'
   },
   'merkle-proofs': {
     id: 'merkle-proofs',
@@ -105,15 +105,15 @@ export const topicData: Record<string, TopicContent> = {
   },
   'state-root': {
     id: 'state-root',
-    title: 'The State Root',
-    definition: 'The State Root is the 256-bit cryptographic digest of the root node, serving as a recursive commitment to the entire key-value state of the blockchain.',
-    analogy: 'The "Root" is like the DNA of the entire network. If one person has a different DNA, they are on a different (forked) network.',
-    deepDive: 'The State Root is the ultimate source of truth in Ethereum. It is stored in the Block Header. Because the trie is deterministic, any node that processes the same transactions will arrive at the exact same State Root, enabling trustless global consensus.',
+    title: 'The State Root: The Cryptographic Anchor',
+    definition: 'The State Root is the 32-byte Keccak-256 digest of the root node, serving as a recursive cryptographic commitment to the entire global state of the blockchain.',
+    analogy: 'A DNA sample from a single hair that identifies the entire organism. If one cell changes, the DNA signature becomes invalid.',
+    deepDive: 'In a Merkle Patricia Trie, every node is identified by the hash of its contents. Because nodes contain the hashes of their children, the root node\'s hash is mathematically dependent on every single key-value pair in the database. This allows a light client to verify the entire 500GB+ state of Ethereum using just this single 32-byte string found in the Block Header.',
     steps: [
-      { title: 'RLP Encoding', description: 'Nodes are serialized using Recursive Length Prefix (RLP) before being hashed with Keccak-256.' },
-      { title: 'Global Consensus', description: 'The State Root allows nodes to agree on the outcome of millions of transactions with just 32 bytes of data.' },
-      { title: 'Verification Anchor', description: 'All Merkle Proofs and state queries are validated against this single trusted anchor point.' }
+      { title: 'Recursive Hashing', description: 'The root hash is calculated bottom-up. Leaf hashes flow into Branches, which flow into Extensions, eventually culminating in the single Root Hash.' },
+      { title: 'Deterministic Truth', description: 'Because the Patricia Trie is deterministic, two nodes processing the same transactions will always arrive at the exact same 32-byte Root.' },
+      { title: 'Stateless Verification', description: 'The State Root acts as the "Verification Anchor" for all Merkle Proofs, enabling trustless interaction without storing the full state.' }
     ],
-    visualType: 'state'
+    visualType: 'root-anchor'
   }
 };

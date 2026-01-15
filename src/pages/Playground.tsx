@@ -46,9 +46,9 @@ const Playground: React.FC = () => {
   };
 
   return (
-    <div className="grid lg:grid-cols-[320px_1fr_300px] gap-6 h-[calc(100vh-160px)]">
+    <div className="flex flex-col lg:grid lg:grid-cols-[320px_1fr_300px] gap-6 lg:h-[calc(100vh-160px)] min-h-screen lg:min-h-0">
       {/* Sidebar Controls */}
-      <div className="bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl p-6 flex flex-col gap-6 overflow-hidden shadow-sm">
+      <div className="bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl p-6 flex flex-col gap-6 lg:overflow-hidden shadow-sm">
         <div>
           <h2 className="text-lg font-bold mb-1">State Controls</h2>
           <p className="text-neutral-500 dark:text-neutral-400 text-xs">Manage the trie state.</p>
@@ -83,7 +83,7 @@ const Playground: React.FC = () => {
           </button>
         </form>
 
-        <div className="flex-1 overflow-auto space-y-2 min-h-0 pr-2 custom-scrollbar">
+        <div className="flex-1 lg:overflow-auto space-y-2 min-h-0 pr-2 custom-scrollbar">
           <h3 className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest mb-2">Stored Keys</h3>
           {trackedKeys.length === 0 ? (
             <p className="text-neutral-400 dark:text-neutral-600 text-[10px] italic">No keys stored yet.</p>
@@ -116,7 +116,7 @@ const Playground: React.FC = () => {
       </div>
 
       {/* Visualization Canvas */}
-      <div className="bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-3xl relative overflow-hidden flex flex-col shadow-sm">
+      <div className="bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-3xl relative overflow-hidden flex flex-col shadow-sm min-h-[500px] lg:min-h-0">
         <div className="p-4 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center bg-white/50 dark:bg-neutral-900/50 backdrop-blur-sm z-10">
           <div className="flex items-center gap-3">
             <div className="p-1.5 bg-neutral-100 dark:bg-neutral-800 rounded-lg">
@@ -162,13 +162,13 @@ const Playground: React.FC = () => {
       </div>
 
       {/* Node Inspector Sidebar */}
-      <div className="bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl p-6 flex flex-col gap-4 shadow-sm overflow-hidden">
+      <div className="bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl p-6 flex flex-col gap-4 shadow-sm lg:overflow-hidden">
         <h3 className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-2">
           <Database size={12} /> Node Inspector
         </h3>
         
         {selectedNode ? (
-          <div className="flex-1 flex flex-col gap-4 overflow-hidden">
+          <div className="flex-1 flex flex-col gap-4 lg:overflow-hidden">
             <div className="p-3 bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-xl">
               <span className="text-[9px] uppercase font-bold text-neutral-400 block mb-1">Node Hash</span>
               <p className="font-mono text-[10px] text-primary break-all">{selectedNode.hash}</p>
@@ -176,7 +176,7 @@ const Playground: React.FC = () => {
 
             <div className="flex-1 flex flex-col bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-xl overflow-hidden">
               <span className="text-[9px] uppercase font-bold text-neutral-400 p-3 pb-1 block">Raw Structure</span>
-              <div className="flex-1 overflow-auto p-3 pt-0 custom-scrollbar">
+              <div className="flex-1 lg:overflow-auto p-3 pt-0 custom-scrollbar">
                 <pre className="text-[10px] text-neutral-600 dark:text-neutral-400 font-mono leading-relaxed">
                   {JSON.stringify(selectedNode, null, 2)}
                 </pre>

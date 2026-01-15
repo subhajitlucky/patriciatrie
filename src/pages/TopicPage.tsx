@@ -1,13 +1,16 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Lightbulb, PlayCircle, Database } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Lightbulb, PlayCircle, Database } from 'lucide-react';
 import { topicData } from '../utils/topicContent';
 import NibbleVisualizer from '../components/visualizers/NibbleVisualizer';
 import { MerklePatriciaTrie } from '../utils/mpt';
-import TrieNodeVisualizer from '../components/visualizers/TrieNodeVisualizer';
 import MerkleProofVisualizer from '../components/visualizers/MerkleProofVisualizer';
 import StateUpdateVisualizer from '../components/visualizers/StateUpdateVisualizer';
+import TrieComparisonVisualizer from '../components/visualizers/TrieComparisonVisualizer';
+import NodeArchetypeVisualizer from '../components/visualizers/NodeArchetypeVisualizer';
+import PathCompressionVisualizer from '../components/visualizers/PathCompressionVisualizer';
+import StateRootVisualizer from '../components/visualizers/StateRootVisualizer';
 
 const demoTrie = new MerklePatriciaTrie();
 demoTrie.insert('cat', 'meow');
@@ -32,14 +35,13 @@ const TopicPage: React.FC = () => {
       case 'encoding':
         return <NibbleVisualizer />;
       case 'nodes':
-        return (
-          <div className="w-full flex justify-center transform-gpu">
-            <TrieNodeVisualizer 
-              nodeHash={demoTrie.rootHash!} 
-              getTrieNode={(h) => demoTrie.getNode(h)} 
-            />
-          </div>
-        );
+        return <TrieComparisonVisualizer />;
+      case 'archetypes':
+        return <NodeArchetypeVisualizer />;
+      case 'compression':
+        return <PathCompressionVisualizer />;
+      case 'root-anchor':
+        return <StateRootVisualizer />;
       case 'state':
         return <StateUpdateVisualizer />;
       case 'proof':
@@ -128,18 +130,68 @@ const TopicPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="w-full min-h-[600px] lg:min-h-[700px]">
-          <div className="w-full h-full bg-neutral-50 dark:bg-neutral-900 rounded-[32px] border border-neutral-200 dark:border-neutral-800 flex flex-col items-center relative overflow-hidden shadow-inner">
+        <div className="w-full min-h-[500px] lg:min-h-[700px]">
+          <div className="w-full h-full bg-neutral-50 dark:bg-neutral-900 rounded-[24px] md:rounded-[32px] border border-neutral-200 dark:border-neutral-800 flex flex-col items-center relative overflow-hidden shadow-inner">
             <div className="absolute inset-0 bg-grid-black/[0.02] dark:bg-grid-white/[0.02] -z-10" />
             
-            <div className="w-full h-full overflow-auto p-12 custom-scrollbar">
-               <div className="min-w-max min-h-full flex items-center justify-center">
-                  <div className="transform-gpu transition-transform duration-500 origin-center">
+            <div className="w-full h-full overflow-auto p-4 md:p-12 custom-scrollbar">
+               <div className="w-full min-h-full flex items-center justify-center">
+                  <div className="w-full max-w-full transform-gpu transition-transform duration-500 origin-center">
                     {renderVisualizer()}
                   </div>
                </div>
             </div>
           </div>
+        </div>
+
+        {/* Navigation Buttons */}
+        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 pt-8 border-t border-neutral-200 dark:border-neutral-800">
+          {(() => {
+            const topicIds = Object.keys(topicData);
+            const currentIndex = topicIds.indexOf(topic.id);
+            const prevTopicId = currentIndex > 0 ? topicIds[currentIndex - 1] : null;
+            const nextTopicId = currentIndex < topicIds.length - 1 ? topicIds[currentIndex + 1] : null;
+            const prevTopic = prevTopicId ? topicData[prevTopicId] : null;
+            const nextTopic = nextTopicId ? topicData[nextTopicId] : null;
+
+            return (
+              <>
+                <div className="flex-1">
+                  {prevTopic && (
+                    <Link
+                      to={`/learn/${prevTopic.id}`}
+                      className="group flex items-center gap-2 sm:gap-3 px-3 sm:px-6 py-2 sm:py-3 rounded-2xl sm:rounded-full border border-neutral-200 dark:border-neutral-800 hover:border-primary/50 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-all h-full"
+                    >
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors shrink-0">
+                        <ArrowLeft size={14} className="sm:w-4 sm:h-4" />
+                      </div>
+                      <div className="text-left min-w-0">
+                        <span className="block text-[10px] text-neutral-500 font-medium uppercase tracking-wider">Previous</span>
+                        <span className="font-bold text-neutral-900 dark:text-neutral-100 text-sm sm:text-base truncate block">{prevTopic.title}</span>
+                      </div>
+                    </Link>
+                  )}
+                </div>
+
+                <div className="flex-1">
+                  {nextTopic && (
+                    <Link
+                      to={`/learn/${nextTopic.id}`}
+                      className="group flex items-center justify-end gap-2 sm:gap-3 px-3 sm:px-6 py-2 sm:py-3 rounded-2xl sm:rounded-full bg-primary text-white shadow-lg shadow-primary/25 hover:shadow-primary/40 hover:-translate-y-0.5 transition-all h-full"
+                    >
+                      <div className="text-right min-w-0">
+                        <span className="block text-[10px] text-white/80 font-medium uppercase tracking-wider">Next Topic</span>
+                        <span className="font-bold text-sm sm:text-base truncate block">{nextTopic.title}</span>
+                      </div>
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                        <ArrowRight size={14} className="sm:w-4 sm:h-4" />
+                      </div>
+                    </Link>
+                  )}
+                </div>
+              </>
+            );
+          })()}
         </div>
       </div>
     </div>
