@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Box, Github } from 'lucide-react';
+import { Network, Github } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -29,7 +29,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 font-bold text-xl tracking-tight">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <Box size={20} className="text-white" />
+              <Network size={20} className="text-white" />
             </div>
             <span>Patricia<span className="text-primary">Trie</span></span>
           </Link>
