@@ -61,16 +61,15 @@ const Tooltip: React.FC<TooltipProps> = ({ content, children, delay = 0.2, class
         <AnimatePresence>
           {isVisible && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 5 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 5 }}
+              initial={{ opacity: 0, scale: 0.95, x: "-50%", y: "-90%" }}
+              animate={{ opacity: 1, scale: 1, x: "-50%", y: "-100%" }}
+              exit={{ opacity: 0, scale: 0.95, x: "-50%", y: "-90%" }}
               transition={{ duration: 0.15, delay }}
               style={{
                 position: 'fixed',
                 top: position.top,
                 left: position.left,
-                transform: 'translate(-50%, -100%)',
-                marginTop: '-8px' // Equivalent to mb-2 in previous absolute positioning
+                marginTop: '-8px' // Gap between element and tooltip
               }}
               className="px-3 py-1.5 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-xs rounded-lg shadow-xl whitespace-nowrap z-[9999] pointer-events-none"
             >

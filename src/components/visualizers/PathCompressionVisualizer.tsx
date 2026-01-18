@@ -3,6 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Minimize2, Zap, Search, ArrowDown, Database, LayoutGrid } from 'lucide-react';
 import Tooltip from '../ui/Tooltip';
 
+const STEPS = [
+  { id: 0, label: 'Raw Trie', icon: LayoutGrid, color: 'bg-blue-500' },
+  { id: 1, label: 'Pattern Analysis', icon: Search, color: 'bg-amber-500' },
+  { id: 2, label: 'Radix Optimization', icon: Zap, color: 'bg-emerald-500' },
+];
+
 const PathCompressionVisualizer: React.FC = () => {
   const [step, setStep] = useState<0 | 1 | 2>(0);
   const [pathInput, setPathInput] = useState('01a');
@@ -14,12 +20,6 @@ const PathCompressionVisualizer: React.FC = () => {
   };
 
   const nibbles = pathInput.split('');
-
-  const steps = [
-    { id: 0, label: 'Raw Trie', icon: LayoutGrid, color: 'bg-blue-500' },
-    { id: 1, label: 'Pattern Analysis', icon: Search, color: 'bg-amber-500' },
-    { id: 2, label: 'Radix Optimization', icon: Zap, color: 'bg-emerald-500' },
-  ];
 
   return (
     <div className="w-full max-w-4xl mx-auto flex flex-col gap-8">
@@ -41,13 +41,13 @@ const PathCompressionVisualizer: React.FC = () => {
         </div>
 
         {/* Stepper */}
-        <div className="flex items-center gap-2 bg-neutral-100 dark:bg-neutral-950 p-1.5 rounded-2xl overflow-x-auto max-w-full">
-          {steps.map((s) => (
+        <div className="flex items-center gap-2 bg-neutral-100 dark:bg-neutral-950 p-1.5 rounded-2xl overflow-x-auto max-w-full relative z-10">
+          {STEPS.map((s) => (
             <button
               key={s.id}
               onClick={() => setStep(s.id as 0 | 1 | 2)}
               className={`
-                flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer
+                flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer relative z-20
                 ${step === s.id 
                   ? 'bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white shadow-md' 
                   : 'text-neutral-500 hover:bg-white/50 dark:hover:bg-neutral-800/50'}

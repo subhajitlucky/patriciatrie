@@ -1,13 +1,16 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { ChevronRight, Database, BookOpen, CheckCircle2, RotateCcw } from 'lucide-react';
+import { motion, useScroll, useTransform, useMotionTemplate, useMotionValue } from 'framer-motion';
+import { ChevronRight, Database, CheckCircle2, RotateCcw, Lock } from 'lucide-react';
 import { allTopics } from '../utils/topicContent';
 import { useProgress } from '../hooks/useProgress';
 
 const Learn: React.FC = () => {
   const { completedTopics, isCompleted } = useProgress();
   const progressPercentage = Math.round((completedTopics.length / allTopics.length) * 100);
+  const { scrollY } = useScroll();
+  const headerY = useTransform(scrollY, [0, 300], [0, 100]);
+  const headerOpacity = useTransform(scrollY, [0, 300], [1, 0.5]);
 
   const clearProgress = () => {
     localStorage.removeItem('pt-progress');
@@ -15,150 +18,228 @@ const Learn: React.FC = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8 sm:py-12">
-      <header className="mb-16 relative">
-        <div className="absolute -left-4 top-0 w-1 h-full bg-primary/20 rounded-full hidden lg:block" />
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-4"
-          >
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-black uppercase tracking-[0.2em]">
-              <BookOpen size={12} />
-              Educational Path
+    <div className="relative min-h-screen pb-32">
+      {/* Dynamic Background Noise */}
+      <div className="fixed inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.05] z-0 bg-[url('https://grainy-gradients.vercel.org/noise.svg')]" />
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10">
+        {/* Parallax Header */}
+        <motion.header 
+          style={{ y: headerY, opacity: headerOpacity }}
+          className="pt-20 sm:pt-32 mb-24 relative"
+        >
+          <div className="absolute top-0 right-0 -z-10 w-[600px] h-[600px] bg-orange-500/10 rounded-full blur-[120px] pointer-events-none" />
+          
+          <div className="flex flex-col lg:flex-row justify-between items-start gap-12">
+            <div className="space-y-6 max-w-3xl">
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-neutral-900/5 dark:bg-white/5 border border-neutral-200 dark:border-white/10 backdrop-blur-md"
+              >
+                <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-xs font-bold tracking-widest uppercase text-neutral-600 dark:text-neutral-300">
+                  Interactive Curriculum
+                </span>
+              </motion.div>
+              
+              <h1 className="text-6xl sm:text-8xl font-black tracking-tighter text-neutral-900 dark:text-white leading-[0.9]">
+                Protocol <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-amber-600">Mastery</span>
+              </h1>
+              
+              <p className="text-xl text-neutral-600 dark:text-neutral-400 font-medium leading-relaxed max-w-2xl">
+                From raw bytes to global consensus. A visual journey through the Ethereum state machine.
+              </p>
             </div>
-            <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-neutral-900 dark:text-white">
-              Mastering <span className="text-primary">Patricia Tries</span>
-            </h1>
-            <p className="text-neutral-500 dark:text-neutral-400 text-lg max-w-2xl font-medium leading-relaxed">
-              A comprehensive, step-by-step journey through the cryptographic heart of the blockchain state machine.
-            </p>
-          </motion.div>
 
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 p-6 rounded-[32px] shadow-xl min-w-[240px]"
-          >
-             <div className="flex justify-between items-center mb-4">
-                <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">Total Progress</span>
-                <span className="text-sm font-black text-primary">{progressPercentage}%</span>
-             </div>
-             <div className="w-full h-3 bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden mb-4">
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: `${progressPercentage}%` }}
-                  className="h-full bg-primary shadow-[0_0_10px_rgba(59,130,246,0.5)]"
-                />
-             </div>
-             <div className="flex justify-between items-center">
-                <span className="text-xs font-bold text-neutral-500">{completedTopics.length} / {allTopics.length} Lessons</span>
-                {completedTopics.length > 0 && (
-                  <button 
-                    onClick={clearProgress}
-                    className="text-[10px] font-black uppercase text-rose-500 hover:text-rose-600 flex items-center gap-1 transition-colors"
-                  >
-                    <RotateCcw size={10} /> Reset
-                  </button>
-                )}
-             </div>
-          </motion.div>
-        </div>
-      </header>
+            {/* HUD Progress Widget */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2 }}
+              className="w-full lg:w-80 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border border-neutral-200 dark:border-white/10 p-6 rounded-[32px] shadow-2xl relative overflow-hidden"
+            >
+               <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-amber-500/5" />
+               <div className="relative z-10 space-y-4">
+                 <div className="flex justify-between items-end">
+                    <div>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400 block mb-1">Progress</span>
+                      <span className="text-4xl font-black text-neutral-900 dark:text-white">{progressPercentage}%</span>
+                    </div>
+                    <div className="h-10 w-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                      <CheckCircle2 size={20} />
+                    </div>
+                 </div>
+                 
+                 <div className="w-full h-2 bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: `${progressPercentage}%` }}
+                      transition={{ duration: 1, ease: "easeOut" }}
+                      className="h-full bg-gradient-to-r from-orange-500 to-amber-500"
+                    />
+                 </div>
+                 
+                 <div className="flex justify-between items-center pt-2">
+                    <span className="text-xs font-bold text-neutral-500">{completedTopics.length} of {allTopics.length} Modules</span>
+                    {completedTopics.length > 0 && (
+                      <button 
+                        onClick={clearProgress}
+                        className="text-[10px] font-black uppercase text-rose-500 hover:text-rose-600 flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-rose-500/10 transition-colors"
+                      >
+                        <RotateCcw size={10} /> Reset
+                      </button>
+                    )}
+                 </div>
+               </div>
+            </motion.div>
+          </div>
+        </motion.header>
 
-      <div className="relative">
-        {/* Connection Line */}
-        <div className="absolute left-[27px] sm:left-12 top-0 bottom-0 w-0.5 bg-neutral-100 dark:bg-neutral-800 hidden sm:block" />
+        {/* Timeline Grid */}
+        <div className="relative space-y-8">
+          {/* Connecting Line */}
+          <div className="absolute left-8 top-8 bottom-8 w-px bg-gradient-to-b from-orange-500/0 via-neutral-300 dark:via-neutral-700 to-orange-500/0 hidden sm:block" />
 
-        <div className="grid gap-8 relative">
           {allTopics.map((topic, i) => {
             const completed = isCompleted(topic.id);
+            const isNext = !completed && (i === 0 || isCompleted(allTopics[i - 1].id));
+            const locked = !completed && !isNext;
+
             return (
               <motion.div
                 key={topic.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.1 }}
-                className="relative"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ delay: i * 0.05 }}
+                className="relative pl-0 sm:pl-24"
               >
-                {/* Path Node Indicator */}
+                {/* Timeline Node */}
                 <div className={`
-                  absolute left-[27px] sm:left-12 top-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white dark:bg-neutral-950 border-4 z-10 hidden sm:block transition-colors duration-500
-                  ${completed ? 'border-primary' : 'border-neutral-200 dark:border-neutral-800'}
+                  absolute left-8 top-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-[3px] z-10 hidden sm:block bg-neutral-50 dark:bg-neutral-950 transition-colors duration-500
+                  ${completed ? 'border-emerald-500 bg-emerald-500' : isNext ? 'border-orange-500 animate-pulse' : 'border-neutral-300 dark:border-neutral-700'}
                 `} />
 
-                <Link
-                  to={`/learn/${topic.id}`}
-                  className={`
-                    group flex flex-col sm:flex-row items-start sm:items-center p-6 sm:p-8 sm:ml-24 bg-white/50 dark:bg-neutral-900/50 backdrop-blur-sm border rounded-[32px] transition-all shadow-sm hover:shadow-2xl hover:shadow-primary/5 active:scale-[0.99]
-                    ${completed ? 'border-primary/30 dark:border-primary/20 bg-primary/[0.02]' : 'border-neutral-200 dark:border-neutral-800 hover:border-primary'}
-                  `}
+                <SpotlightCard 
+                  to={`/learn/${topic.id}`} 
+                  disabled={false} // Allowing exploration regardless of lock for this demo, usually would be `locked`
+                  className={`group relative overflow-hidden rounded-[32px] border transition-all duration-500 ${
+                    completed 
+                      ? 'border-emerald-500/30 bg-emerald-500/[0.02]' 
+                      : isNext 
+                        ? 'border-orange-500/50 bg-orange-500/[0.02] shadow-2xl shadow-orange-500/10' 
+                        : 'border-neutral-200 dark:border-neutral-800 bg-white/50 dark:bg-neutral-900/50 grayscale-[0.5] opacity-80'
+                  }`}
                 >
-                  <div className="flex items-center gap-6 w-full">
+                  <div className="relative z-10 flex flex-col sm:flex-row gap-8 p-8 items-center">
+                    {/* Icon Box */}
                     <div className={`
-                      relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center shrink-0 transition-all duration-500 shadow-inner
-                      ${completed ? 'bg-primary text-white' : 'bg-neutral-100 dark:bg-neutral-800 group-hover:bg-primary group-hover:text-white'}
+                      relative w-20 h-20 rounded-2xl flex items-center justify-center text-3xl shadow-inner transition-transform duration-500 group-hover:scale-110
+                      ${completed ? 'bg-emerald-500 text-white' : isNext ? 'bg-orange-600 text-white' : 'bg-neutral-200 dark:bg-neutral-800 text-neutral-400'}
                     `}>
-                      {topic.icon && <topic.icon size={28} className={`${completed ? 'text-white' : topic.color} group-hover:text-white transition-colors`} />}
+                      {topic.icon && <topic.icon size={32} />}
                       {completed && (
-                        <div className="absolute -top-2 -right-2 w-6 h-6 bg-emerald-500 text-white rounded-full flex items-center justify-center border-2 border-white dark:border-neutral-900 shadow-lg">
-                           <CheckCircle2 size={14} />
+                        <div className="absolute -bottom-2 -right-2 bg-white dark:bg-neutral-900 text-emerald-500 p-1 rounded-full border-2 border-emerald-500">
+                          <CheckCircle2 size={16} />
                         </div>
                       )}
                     </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-1">
-                        <span className="text-[10px] font-black text-primary uppercase tracking-widest">Lesson 0{i + 1}</span>
-                        <span className="w-1 h-1 rounded-full bg-neutral-300 dark:bg-neutral-700" />
-                        <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">{topic.tag}</span>
+
+                    <div className="flex-1 text-center sm:text-left">
+                      <div className="flex items-center justify-center sm:justify-start gap-3 mb-3">
+                        <span className={`text-xs font-black uppercase tracking-widest ${isNext ? 'text-orange-500' : 'text-neutral-400'}`}>
+                          Module 0{i + 1}
+                        </span>
+                        {locked && <Lock size={12} className="text-neutral-400" />}
                       </div>
-                      <h3 className={`
-                        text-xl sm:text-2xl font-black mb-2 transition-colors
-                        ${completed ? 'text-primary' : 'text-neutral-900 dark:text-white group-hover:text-primary'}
-                      `}>
+                      <h3 className="text-3xl font-black text-neutral-900 dark:text-white mb-3 group-hover:text-orange-500 transition-colors">
                         {topic.title}
                       </h3>
-                      <p className="text-neutral-500 dark:text-neutral-400 text-sm sm:text-base leading-relaxed font-medium line-clamp-2">
+                      <p className="text-neutral-500 dark:text-neutral-400 font-medium leading-relaxed">
                         {topic.description}
                       </p>
                     </div>
 
                     <div className={`
-                      hidden sm:flex w-12 h-12 rounded-full border items-center justify-center transition-all duration-500 shrink-0
-                      ${completed 
-                        ? 'bg-primary border-primary text-white' 
-                        : 'border-neutral-100 dark:border-neutral-800 group-hover:bg-primary group-hover:border-primary group-hover:text-white'}
+                      hidden sm:flex w-14 h-14 rounded-full border-2 items-center justify-center transition-all duration-500
+                      ${isNext ? 'border-orange-500 text-orange-500 group-hover:bg-orange-500 group-hover:text-white' : 'border-neutral-200 dark:border-neutral-800 text-neutral-300'}
                     `}>
-                      <ChevronRight size={20} />
+                      <ChevronRight size={24} />
                     </div>
                   </div>
-                </Link>
+
+                  {/* Watermark Number */}
+                  <div className="absolute -right-4 -bottom-12 text-[12rem] font-black text-neutral-900/[0.03] dark:text-white/[0.03] pointer-events-none select-none">
+                    {i + 1}
+                  </div>
+                </SpotlightCard>
               </motion.div>
             );
           })}
         </div>
-      </div>
 
-      <footer className="mt-20 p-8 rounded-[40px] bg-neutral-900 dark:bg-neutral-950 text-white overflow-hidden relative border border-neutral-800 shadow-2xl">
-        <div className="absolute top-0 right-0 p-8 opacity-10">
-           <Database size={120} />
-        </div>
-        <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
-           <div className="text-center md:text-left">
-              <h4 className="text-xl font-black mb-2">Ready to experiment?</h4>
-              <p className="text-neutral-400 text-sm max-w-sm">Jump into the Playground to build your own trie from scratch and see these concepts in action.</p>
-           </div>
-           <Link 
-             to="/playground"
-             className="px-8 py-4 bg-primary text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-blue-600 transition-all shadow-xl shadow-primary/20 active:scale-95"
-           >
-             Go to Playground
-           </Link>
-        </div>
-      </footer>
+        {/* CTA Footer */}
+        <motion.div 
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mt-32 relative rounded-[48px] overflow-hidden bg-neutral-900 dark:bg-neutral-950 text-white p-12 sm:p-24 text-center border border-neutral-800"
+        >
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(249,115,22,0.2),transparent_70%)]" />
+          <div className="relative z-10 flex flex-col items-center gap-8">
+            <Database size={64} className="text-orange-500 animate-bounce" />
+            <h2 className="text-4xl sm:text-6xl font-black tracking-tight">Ready to build?</h2>
+            <p className="text-xl text-neutral-400 max-w-2xl">
+              Take your knowledge to the sandbox. Experiment with live Merkle Patricia Tries in a risk-free environment.
+            </p>
+            <Link 
+              to="/playground"
+              className="mt-8 px-12 py-5 bg-white text-neutral-900 rounded-full font-black text-sm uppercase tracking-widest hover:scale-105 transition-transform shadow-2xl shadow-white/20"
+            >
+              Open Playground
+            </Link>
+          </div>
+        </motion.div>
+      </div>
     </div>
+  );
+};
+
+// --- Spotlight Card Component ---
+
+const SpotlightCard = ({ children, to, className = "", disabled }: { children: React.ReactNode, to: string, className?: string, disabled?: boolean }) => {
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const handleMouseMove = ({ currentTarget, clientX, clientY }: React.MouseEvent) => {
+    const { left, top } = currentTarget.getBoundingClientRect();
+    mouseX.set(clientX - left);
+    mouseY.set(clientY - top);
+  };
+
+  return (
+    <Link
+      to={disabled ? '#' : to}
+      className={`block relative ${className}`}
+      onMouseMove={handleMouseMove}
+      style={{ cursor: disabled ? 'not-allowed' : 'pointer' }}
+    >
+      <motion.div
+        className="pointer-events-none absolute -inset-px rounded-[32px] opacity-0 transition duration-300 group-hover:opacity-100"
+        style={{
+          background: useMotionTemplate`
+            radial-gradient(
+              650px circle at ${mouseX}px ${mouseY}px,
+              rgba(249, 115, 22, 0.15),
+              transparent 80%
+            )
+          `
+        }}
+      />
+      <div>{children}</div>
+    </Link>
   );
 };
 

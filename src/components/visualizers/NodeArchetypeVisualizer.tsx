@@ -3,61 +3,60 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Share2, Layers, Database, Cpu, ChevronRight, Info } from 'lucide-react';
 import Tooltip from '../ui/Tooltip';
 
+const NODE_DATA = {
+  branch: {
+    title: 'Branch',
+    icon: Share2,
+    color: 'text-blue-500',
+    bg: 'bg-blue-500/10',
+    border: 'border-blue-500/20',
+    desc: '17-slot array for path divergence.',
+    memory: '544 bytes (raw)',
+    logic: 'The search nibble (0-F) acts as the direct index into this array.'
+  },
+  extension: {
+    title: 'Extension',
+    icon: Layers,
+    color: 'text-amber-500',
+    bg: 'bg-amber-500/10',
+    border: 'border-amber-500/20',
+    desc: 'Optimization for shared paths.',
+    memory: 'Partial Path + Child Hash',
+    logic: 'Collapses 10+ empty branches into one single lookup operation.'
+  },
+  leaf: {
+    title: 'Leaf',
+    icon: Database,
+    color: 'text-emerald-500',
+    bg: 'bg-emerald-500/10',
+    border: 'border-emerald-500/20',
+    desc: 'Terminal node with state data.',
+    memory: 'Suffix + RLP Data',
+    logic: 'The cryptographic end-of-path where the search key finally resolves.'
+  }
+};
+
 const NodeArchetypeVisualizer: React.FC = () => {
   const [activeType, setActiveType] = useState<'branch' | 'extension' | 'leaf'>('branch');
-
-  const nodeData = {
-    branch: {
-      title: 'Branch',
-      icon: Share2,
-      color: 'text-blue-500',
-      bg: 'bg-blue-500/10',
-      border: 'border-blue-500/20',
-      desc: '17-slot array for path divergence.',
-      memory: '544 bytes (raw)',
-      logic: 'The search nibble (0-F) acts as the direct index into this array.'
-    },
-    extension: {
-      title: 'Extension',
-      icon: Layers,
-      color: 'text-amber-500',
-      bg: 'bg-amber-500/10',
-      border: 'border-amber-500/20',
-      desc: 'Optimization for shared paths.',
-      memory: 'Partial Path + Child Hash',
-      logic: 'Collapses 10+ empty branches into one single lookup operation.'
-    },
-    leaf: {
-      title: 'Leaf',
-      icon: Database,
-      color: 'text-emerald-500',
-      bg: 'bg-emerald-500/10',
-      border: 'border-emerald-500/20',
-      desc: 'Terminal node with state data.',
-      memory: 'Suffix + RLP Data',
-      logic: 'The cryptographic end-of-path where the search key finally resolves.'
-    }
-  };
-
-  const active = nodeData[activeType];
+  const active = NODE_DATA[activeType];
 
   return (
     <div className="w-full max-w-4xl mx-auto flex flex-col gap-6 sm:gap-8">
       {/* Archetype Selector */}
-      <div className="flex p-1 bg-neutral-100 dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-inner overflow-x-auto">
+      <div className="flex p-1 bg-neutral-100 dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-inner overflow-x-auto relative z-10">
         {(['branch', 'extension', 'leaf'] as const).map((type) => (
           <button
             key={type}
             onClick={() => setActiveType(type)}
             className={`
-              flex-1 min-w-[100px] flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer
+              flex-1 min-w-[100px] flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer relative z-20
               ${activeType === type 
                 ? 'bg-white dark:bg-neutral-800 text-primary shadow-sm' 
                 : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'}
             `}
           >
-            {React.createElement(nodeData[type].icon, { size: 12 })}
-            <span>{nodeData[type].title}</span>
+            {React.createElement(NODE_DATA[type].icon, { size: 12 })}
+            <span>{NODE_DATA[type].title}</span>
           </button>
         ))}
       </div>
@@ -137,7 +136,7 @@ const NodeArchetypeVisualizer: React.FC = () => {
 
         {/* Technical Data */}
         <div className="lg:col-span-2 flex flex-col gap-4">
-          <div className={`p-5 rounded-[28px] ${active.bg} border border-${active.border} flex flex-col gap-3`}>
+          <div className={`p-5 rounded-[28px] ${active.bg} border ${active.border} flex flex-col gap-3`}>
             <div className="flex items-center gap-3">
               <div className="w-7 h-7 rounded-lg bg-white dark:bg-neutral-900 flex items-center justify-center shadow-sm">
                 <Cpu size={14} className={active.color} />
