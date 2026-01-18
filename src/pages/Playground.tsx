@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Plus, RefreshCcw, Trash2, Hash, Database, Search } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Plus, RefreshCcw, Trash2, Hash, Database, Search, Fingerprint } from 'lucide-react';
 import { MerklePatriciaTrie } from '../utils/mpt';
 import type { TrieNode } from '../types/trie';
 import TrieNodeVisualizer from '../components/visualizers/TrieNodeVisualizer';
+import Tooltip from '../components/ui/Tooltip';
 
 const Playground: React.FC = () => {
   const [trie, setTrie] = useState(() => new MerklePatriciaTrie());
@@ -12,6 +13,14 @@ const Playground: React.FC = () => {
   const [lastAction, setLastAction] = useState<string | null>(null);
   const [trackedKeys, setTrackedKeys] = useState<{key: string, value: string}[]>([]);
   const [selectedNode, setSelectedNode] = useState<TrieNode | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024); // Matching the lg breakpoint
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const handleInsertWithTracking = (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +55,7 @@ const Playground: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col lg:grid lg:grid-cols-[320px_1fr_300px] gap-6 lg:h-[calc(100vh-160px)] min-h-screen lg:min-h-0">
+    <div className="relative flex flex-col lg:grid lg:grid-cols-[320px_1fr_300px] gap-6 lg:h-[calc(100vh-160px)] min-h-screen lg:min-h-0">
       {/* Sidebar Controls */}
       <div className="bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl p-6 flex flex-col gap-6 lg:overflow-hidden shadow-sm">
         <div>
@@ -90,9 +99,13 @@ const Playground: React.FC = () => {
           ) : (
             trackedKeys.map((item) => (
               <div key={item.key} className="flex items-center justify-between p-2.5 bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-xl group">
-                <div className="overflow-hidden">
-                  <span className="font-mono text-xs text-primary truncate block">{item.key}</span>
-                  <span className="text-neutral-500 dark:text-neutral-400 text-[10px] truncate block">{item.value}</span>
+                <div className="overflow-hidden min-w-0">
+                  <Tooltip content={item.key}>
+                    <span className="font-mono text-xs text-primary truncate block cursor-help">{item.key}</span>
+                  </Tooltip>
+                  <Tooltip content={item.value}>
+                    <span className="text-neutral-500 dark:text-neutral-400 text-[10px] truncate block cursor-help">{item.value}</span>
+                  </Tooltip>
                 </div>
                 <button 
                   onClick={() => handleDeleteWithTracking(item.key)}
@@ -161,8 +174,8 @@ const Playground: React.FC = () => {
         )}
       </div>
 
-      {/* Node Inspector Sidebar */}
-      <div className="bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl p-6 flex flex-col gap-4 shadow-sm lg:overflow-hidden">
+      {/* Desktop Node Inspector Sidebar */}
+      <div className="hidden lg:flex bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl p-6 flex-col gap-4 shadow-sm lg:overflow-hidden">
         <h3 className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-2">
           <Database size={12} /> Node Inspector
         </h3>
@@ -197,6 +210,57 @@ const Playground: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Mobile Node Inspector Bottom Sheet */}
+      <AnimatePresence>
+        {isMobile && selectedNode && (
+          <motion.div 
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed inset-x-0 bottom-0 z-50 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl border-t border-neutral-200 dark:border-neutral-800 rounded-t-[32px] p-6 shadow-2xl max-h-[60vh] overflow-y-auto"
+          >
+            <div className="flex justify-between items-center mb-6 sticky top-0 bg-inherit z-10 pb-2">
+              <h3 className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest flex items-center gap-2">
+                <Database size={12} /> Node Inspector
+              </h3>
+              <button 
+                onClick={() => setSelectedNode(null)}
+                className="p-2 -mr-2 text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                 <div className="flex items-center gap-2 text-neutral-400 mb-2">
+                    <Fingerprint size={14} />
+                    <span className="text-[10px] font-bold uppercase">Hash Signature</span>
+                 </div>
+                 <p className="font-mono text-xs break-all bg-neutral-100 dark:bg-neutral-950 p-3 rounded-xl border border-neutral-200 dark:border-neutral-800 leading-relaxed">
+                   {selectedNode.hash}
+                 </p>
+              </div>
+
+              <div className="p-3 bg-neutral-50 dark:bg-neutral-950 rounded-2xl border border-neutral-100 dark:border-neutral-800">
+                <span className="text-[8px] font-black text-neutral-400 uppercase block mb-1">Type</span>
+                <p className="text-xs font-bold text-primary">{selectedNode.type}</p>
+              </div>
+
+              <div className="bg-neutral-50 dark:bg-neutral-950 border border-neutral-100 dark:border-neutral-800 rounded-xl overflow-hidden">
+                <span className="text-[9px] uppercase font-bold text-neutral-400 p-3 pb-1 block">Raw Structure</span>
+                <div className="p-3 pt-0">
+                  <pre className="text-[10px] text-neutral-600 dark:text-neutral-400 font-mono leading-relaxed overflow-x-auto">
+                    {JSON.stringify(selectedNode, null, 2)}
+                  </pre>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
