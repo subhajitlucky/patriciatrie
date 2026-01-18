@@ -99,13 +99,26 @@ const Playground: React.FC = () => {
           ) : (
             trackedKeys.map((item) => (
               <div key={item.key} className="flex items-center justify-between p-2.5 bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-xl group">
-                <div className="overflow-hidden min-w-0">
-                  <Tooltip content={item.key}>
-                    <span className="font-mono text-xs text-primary truncate block cursor-help">{item.key}</span>
-                  </Tooltip>
-                  <Tooltip content={item.value}>
-                    <span className="text-neutral-500 dark:text-neutral-400 text-[10px] truncate block cursor-help">{item.value}</span>
-                  </Tooltip>
+                <div className="overflow-hidden min-w-0 flex-1 mr-2">
+                  {item.key.length > 20 ? (
+                    <Tooltip content={item.key} className="block truncate">
+                      <span className="font-mono text-xs text-primary truncate block cursor-help">{item.key}</span>
+                    </Tooltip>
+                  ) : (
+                    <div className="block truncate">
+                      <span className="font-mono text-xs text-primary truncate block">{item.key}</span>
+                    </div>
+                  )}
+                  
+                  {item.value.length > 20 ? (
+                    <Tooltip content={item.value} className="block truncate">
+                      <span className="text-neutral-500 dark:text-neutral-400 text-[10px] truncate block cursor-help">{item.value}</span>
+                    </Tooltip>
+                  ) : (
+                    <div className="block truncate">
+                      <span className="text-neutral-500 dark:text-neutral-400 text-[10px] truncate block">{item.value}</span>
+                    </div>
+                  )}
                 </div>
                 <button 
                   onClick={() => handleDeleteWithTracking(item.key)}
