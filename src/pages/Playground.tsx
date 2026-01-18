@@ -77,7 +77,7 @@ const Playground: React.FC = () => {
           </div>
           <button 
             type="submit"
-            className="w-full bg-primary text-white py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-blue-600 transition-colors shadow-lg shadow-primary/20"
+            className="w-full bg-primary text-white py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-blue-600 transition-colors shadow-lg shadow-primary/20 cursor-pointer"
           >
             <Plus size={16} /> Insert
           </button>
@@ -96,7 +96,7 @@ const Playground: React.FC = () => {
                 </div>
                 <button 
                   onClick={() => handleDeleteWithTracking(item.key)}
-                  className="p-1 text-neutral-400 hover:text-red-500 transition-colors shrink-0"
+                  className="p-1 text-neutral-400 hover:text-red-500 transition-colors shrink-0 cursor-pointer"
                 >
                   <Trash2 size={12} />
                 </button>
@@ -108,7 +108,7 @@ const Playground: React.FC = () => {
         <div className="pt-4 border-t border-neutral-200 dark:border-neutral-800 shrink-0">
           <button 
             onClick={resetTrie}
-            className="w-full bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
+            className="w-full bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors cursor-pointer"
           >
             <RefreshCcw size={14} /> Reset
           </button>
@@ -130,9 +130,9 @@ const Playground: React.FC = () => {
           <p className="text-[10px] text-neutral-400 uppercase font-bold tracking-widest hidden sm:block">Click a node to inspect</p>
         </div>
 
-        <div className="flex-1 overflow-auto p-8 bg-grid-black/[0.02] dark:bg-grid-white/[0.02] custom-scrollbar">
+        <div className="flex-1 overflow-auto p-4 sm:p-8 bg-grid-black/[0.02] dark:bg-grid-white/[0.02] custom-scrollbar">
            {trie.rootHash ? (
-             <div className="min-w-max flex justify-center">
+             <div className="min-w-max flex justify-center transform scale-[0.75] sm:scale-[0.85] lg:scale-100 origin-top transition-transform">
                <TrieNodeVisualizer 
                 nodeHash={trie.rootHash} 
                 getTrieNode={(h) => trie.getNode(h)} 
@@ -185,7 +185,7 @@ const Playground: React.FC = () => {
             
             <button 
               onClick={() => setSelectedNode(null)}
-              className="text-[10px] font-bold text-neutral-400 hover:text-primary transition-colors py-1"
+              className="text-[10px] font-bold text-neutral-400 hover:text-primary transition-colors py-1 cursor-pointer"
             >
               Clear Inspector
             </button>

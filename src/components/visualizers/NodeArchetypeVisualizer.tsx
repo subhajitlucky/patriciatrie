@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Share2, Layers, Database, Cpu, ChevronRight, Info } from 'lucide-react';
+import Tooltip from '../ui/Tooltip';
 
 const NodeArchetypeVisualizer: React.FC = () => {
   const [activeType, setActiveType] = useState<'branch' | 'extension' | 'leaf'>('branch');
@@ -43,13 +44,13 @@ const NodeArchetypeVisualizer: React.FC = () => {
   return (
     <div className="w-full max-w-4xl mx-auto flex flex-col gap-6 sm:gap-8">
       {/* Archetype Selector */}
-      <div className="flex p-1 bg-neutral-100 dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-inner">
+      <div className="flex p-1 bg-neutral-100 dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-inner overflow-x-auto">
         {(['branch', 'extension', 'leaf'] as const).map((type) => (
           <button
             key={type}
             onClick={() => setActiveType(type)}
             className={`
-              flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all
+              flex-1 min-w-[100px] flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer
               ${activeType === type 
                 ? 'bg-white dark:bg-neutral-800 text-primary shadow-sm' 
                 : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'}
@@ -77,26 +78,34 @@ const NodeArchetypeVisualizer: React.FC = () => {
               {activeType === 'branch' && (
                 <div className="grid grid-cols-4 sm:grid-cols-8 gap-1.5 sm:gap-2 max-w-xs sm:max-w-none">
                   {Array.from({ length: 16 }).map((_, i) => (
-                    <div key={i} className="w-8 h-8 sm:w-11 sm:h-11 rounded-lg bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-[9px] font-mono font-bold text-blue-600 dark:text-blue-400">
-                      {i.toString(16).toUpperCase()}
-                    </div>
+                    <Tooltip key={i} content={`Nibble Index: ${i.toString(16).toUpperCase()}`}>
+                      <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-lg bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-[9px] font-mono font-bold text-blue-600 dark:text-blue-400 cursor-help transition-all hover:bg-blue-500/20">
+                        {i.toString(16).toUpperCase()}
+                      </div>
+                    </Tooltip>
                   ))}
-                  <div className="col-span-4 sm:col-span-8 py-2 rounded-lg bg-neutral-900 text-white flex items-center justify-center text-[9px] font-black uppercase tracking-widest">
-                    Value Field
+                  <div className="col-span-4 sm:col-span-8 py-2 rounded-lg bg-neutral-900 text-white flex items-center justify-center text-[9px] font-black uppercase tracking-widest cursor-help">
+                    <Tooltip content="Stores the value for the key ending at this node (if any)">
+                       <span>Value Field</span>
+                    </Tooltip>
                   </div>
                 </div>
               )}
 
               {activeType === 'extension' && (
                 <div className="flex flex-col items-center gap-4">
-                  <div className="px-6 py-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col items-center gap-1">
-                    <span className="text-[8px] font-black text-amber-600 uppercase">Path</span>
-                    <p className="text-xl font-mono font-black text-amber-700 dark:text-amber-400 tracking-widest">0x1A2B</p>
-                  </div>
+                  <Tooltip content="The shared nibble sequence compressed into this node">
+                    <div className="px-6 py-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col items-center gap-1 cursor-help">
+                      <span className="text-[8px] font-black text-amber-600 uppercase">Path</span>
+                      <p className="text-xl font-mono font-black text-amber-700 dark:text-amber-400 tracking-widest">0x1A2B</p>
+                    </div>
+                  </Tooltip>
                   <div className="w-0.5 h-6 bg-neutral-200 dark:bg-neutral-800" />
-                  <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white shadow-lg">
-                    <ChevronRight size={20} />
-                  </div>
+                  <Tooltip content="Pointer to the next node">
+                    <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white shadow-lg cursor-help">
+                      <ChevronRight size={20} />
+                    </div>
+                  </Tooltip>
                 </div>
               )}
 
@@ -107,14 +116,18 @@ const NodeArchetypeVisualizer: React.FC = () => {
                       <Database className="text-emerald-500" size={20} />
                       <span className="text-[8px] font-black text-neutral-400 uppercase tracking-widest">Storage</span>
                     </div>
-                    <div className="bg-white dark:bg-neutral-900 p-2.5 rounded-xl border border-emerald-500/20">
-                      <span className="text-[7px] font-black text-neutral-400 uppercase block mb-0.5">Suffix</span>
-                      <p className="font-mono text-[10px] font-bold text-emerald-600 truncate">...f3a2c1</p>
-                    </div>
-                    <div className="bg-neutral-900 text-white p-3 rounded-xl shadow-xl">
-                      <span className="text-[7px] font-black opacity-50 uppercase block mb-0.5">RLP Value</span>
-                      <p className="font-bold text-xs">1,250.00 ETH</p>
-                    </div>
+                    <Tooltip content="Remaining key suffix">
+                      <div className="bg-white dark:bg-neutral-900 p-2.5 rounded-xl border border-emerald-500/20 cursor-help">
+                        <span className="text-[7px] font-black text-neutral-400 uppercase block mb-0.5">Suffix</span>
+                        <p className="font-mono text-[10px] font-bold text-emerald-600 truncate">...f3a2c1</p>
+                      </div>
+                    </Tooltip>
+                    <Tooltip content="RLP Encoded Account State">
+                      <div className="bg-neutral-900 text-white p-3 rounded-xl shadow-xl cursor-help">
+                        <span className="text-[7px] font-black opacity-50 uppercase block mb-0.5">RLP Value</span>
+                        <p className="font-bold text-xs truncate">1,250.00 ETH</p>
+                      </div>
+                    </Tooltip>
                   </div>
                 </div>
               )}

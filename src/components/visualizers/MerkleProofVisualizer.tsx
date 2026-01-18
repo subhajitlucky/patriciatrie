@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MerklePatriciaTrie } from '../../utils/mpt';
 import { ShieldCheck, Fingerprint, Lock, Search } from 'lucide-react';
+import Tooltip from '../ui/Tooltip';
 
 const MerkleProofVisualizer: React.FC = () => {
   const trie = useMemo(() => {
@@ -72,19 +73,25 @@ const MerkleProofVisualizer: React.FC = () => {
                 <div className="flex-1 min-w-0 p-3 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-sm flex items-center justify-between gap-4 group-hover:border-primary/30 transition-all">
                   <div className="flex items-center gap-3 min-w-0">
                     <Fingerprint size={14} className={node ? 'text-primary' : 'text-red-500'} />
-                    <div className="min-w-0">
-                      <p className="font-mono text-[10px] text-neutral-600 dark:text-neutral-300 truncate font-bold">
-                        {node ? node.hash : 'MISSING'}
-                      </p>
-                      <p className="text-[7px] font-black text-neutral-400 uppercase tracking-widest">
-                        {node?.type || 'NULL'}
-                      </p>
+                    <div className="min-w-0 flex flex-col">
+                      <Tooltip content="Node Hash">
+                        <p className="font-mono text-[10px] text-neutral-600 dark:text-neutral-300 truncate font-bold cursor-help">
+                          {node ? node.hash : 'MISSING'}
+                        </p>
+                      </Tooltip>
+                      <Tooltip content="Node Type">
+                        <p className="text-[7px] font-black text-neutral-400 uppercase tracking-widest cursor-help">
+                          {node?.type || 'NULL'}
+                        </p>
+                      </Tooltip>
                     </div>
                   </div>
                   
                   {node && (
                     <div className="flex flex-col items-end shrink-0">
-                       <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.5)]" />
+                       <Tooltip content="Verified Node">
+                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.5)] cursor-help" />
+                       </Tooltip>
                     </div>
                   )}
                 </div>

@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { stringToNibbles } from '../../utils/mpt';
 import { Binary, Cpu, ArrowRight, Info, Fingerprint } from 'lucide-react';
+import Tooltip from '../ui/Tooltip';
 
 const NibbleVisualizer: React.FC = () => {
   const [text, setText] = useState('ABC');
@@ -26,7 +27,7 @@ const NibbleVisualizer: React.FC = () => {
               onChange={(e) => setText(e.target.value)}
               maxLength={6}
               placeholder="Type..."
-              className="bg-neutral-50 dark:bg-neutral-950 border border-neutral-100 dark:border-neutral-800 rounded-2xl px-5 py-3 sm:py-4 text-2xl sm:text-3xl font-mono focus:border-primary outline-none transition-all dark:text-white shadow-inner"
+              className="w-full bg-neutral-50 dark:bg-neutral-950 border border-neutral-100 dark:border-neutral-800 rounded-2xl px-5 py-3 sm:py-4 text-2xl sm:text-3xl font-mono focus:border-primary outline-none transition-all dark:text-white shadow-inner"
             />
             <div className="flex items-start gap-2 text-[10px] text-neutral-500 italic px-1">
               <Info size={12} className="shrink-0 mt-0.5" />
@@ -56,14 +57,16 @@ const NibbleVisualizer: React.FC = () => {
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 }}
-                className="relative overflow-hidden p-4 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-[24px] shadow-sm flex flex-col md:flex-row items-center gap-4 md:gap-8"
+                className="relative p-4 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-[24px] shadow-sm flex flex-col md:flex-row items-center gap-4 md:gap-8"
               >
                 {/* Source Character */}
                 <div className="flex flex-row md:flex-col items-center gap-4 md:gap-0 shrink-0">
                   <span className="hidden md:block text-[8px] font-black text-neutral-400 uppercase mb-2">Source</span>
-                  <div className="w-12 h-12 bg-neutral-100 dark:bg-neutral-800 rounded-xl flex items-center justify-center text-xl font-black border border-neutral-200 dark:border-neutral-700 shadow-sm">
-                    {char}
-                  </div>
+                  <Tooltip content={`ASCII: ${code}`}>
+                    <div className="w-12 h-12 bg-neutral-100 dark:bg-neutral-800 rounded-xl flex items-center justify-center text-xl font-black border border-neutral-200 dark:border-neutral-700 shadow-sm cursor-help">
+                      {char}
+                    </div>
+                  </Tooltip>
                   <span className="font-mono text-[9px] font-bold text-neutral-500">0x{code.toString(16).toUpperCase()}</span>
                 </div>
 
@@ -72,7 +75,9 @@ const NibbleVisualizer: React.FC = () => {
                   <div className="flex flex-col gap-2">
                     <div className="flex justify-between items-center px-1">
                        <span className="text-[8px] font-black text-neutral-400 uppercase">8-Bit Stream</span>
-                       <span className="font-mono text-[10px] font-bold text-emerald-600 dark:text-emerald-400">{binary}</span>
+                       <Tooltip content="Full Binary Representation">
+                         <span className="font-mono text-[10px] font-bold text-emerald-600 dark:text-emerald-400 cursor-help">{binary}</span>
+                       </Tooltip>
                     </div>
                     <div className="h-2.5 bg-neutral-100 dark:bg-neutral-950 rounded-full flex overflow-hidden border border-neutral-200 dark:border-neutral-800">
                        <motion.div 
@@ -152,12 +157,14 @@ const NibbleVisualizer: React.FC = () => {
 };
 
 const NibbleBox = ({ value, color }: { value: number, color: string }) => (
-  <div className="flex flex-col items-center gap-2">
-    <div className={`w-12 h-12 sm:w-14 sm:h-14 ${color} text-white rounded-xl sm:rounded-2xl flex flex-col items-center justify-center shadow-xl shadow-black/20 border border-white/10`}>
-      <span className="text-xl sm:text-2xl font-mono font-black tracking-tighter">{value.toString(16).toUpperCase()}</span>
-      <span className="text-[8px] font-mono font-bold opacity-60">{value.toString(2).padStart(4, '0')}</span>
+  <Tooltip content={`Hex: ${value.toString(16).toUpperCase()} | Bin: ${value.toString(2).padStart(4, '0')}`}>
+    <div className="flex flex-col items-center gap-2 cursor-help">
+      <div className={`w-12 h-12 sm:w-14 sm:h-14 ${color} text-white rounded-xl sm:rounded-2xl flex flex-col items-center justify-center shadow-xl shadow-black/20 border border-white/10`}>
+        <span className="text-xl sm:text-2xl font-mono font-black tracking-tighter">{value.toString(16).toUpperCase()}</span>
+        <span className="text-[8px] font-mono font-bold opacity-60">{value.toString(2).padStart(4, '0')}</span>
+      </div>
     </div>
-  </div>
+  </Tooltip>
 );
 
 export default NibbleVisualizer;

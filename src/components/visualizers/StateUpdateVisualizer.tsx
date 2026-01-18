@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MerklePatriciaTrie } from '../../utils/mpt';
 import TrieNodeVisualizer from './TrieNodeVisualizer';
 import { RefreshCcw, Zap, Hash, Activity, History } from 'lucide-react';
+import Tooltip from '../ui/Tooltip';
 
 const StateUpdateVisualizer: React.FC = () => {
   const [trie, setTrie] = useState(() => {
@@ -29,19 +30,21 @@ const StateUpdateVisualizer: React.FC = () => {
       <div className="relative group">
         <div className="absolute -inset-1 bg-gradient-to-r from-primary to-emerald-500 opacity-10 blur-xl"></div>
         <div className="relative flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-4 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md border border-neutral-200 dark:border-neutral-800 rounded-3xl shadow-xl">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary shadow-inner">
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary shadow-inner shrink-0">
               <Hash size={24} />
             </div>
             <div className="min-w-0">
               <span className="text-[10px] font-black text-neutral-400 uppercase tracking-[0.2em] block mb-1">Active State Root</span>
-              <p className="font-mono text-sm sm:text-base font-black text-primary truncate max-w-[180px] sm:max-w-[250px]">{trie.rootHash}</p>
+              <Tooltip content="The current cryptographic root hash of the trie">
+                <p className="font-mono text-sm sm:text-base font-black text-primary truncate max-w-[180px] sm:max-w-[250px] cursor-help">{trie.rootHash}</p>
+              </Tooltip>
             </div>
           </div>
           
           <button 
             onClick={updateTrie}
-            className="group relative px-6 py-3 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-600 transition-all shadow-lg shadow-primary/25 active:scale-95 flex items-center justify-center gap-2"
+            className="group relative px-6 py-3 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-600 transition-all shadow-lg shadow-primary/25 active:scale-95 flex items-center justify-center gap-2 shrink-0 cursor-pointer"
           >
             <Zap size={16} className="group-hover:animate-pulse" />
             Update 'car' State
@@ -71,14 +74,14 @@ const StateUpdateVisualizer: React.FC = () => {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -20, opacity: 0 }}
-              className="absolute bottom-6 right-6 p-4 bg-emerald-500 text-white rounded-2xl shadow-2xl flex items-center gap-3 border border-white/20 z-30"
+              className="absolute bottom-6 right-6 p-4 bg-emerald-500 text-white rounded-2xl shadow-2xl flex items-center gap-3 border border-white/20 z-30 max-w-[90vw]"
             >
-              <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center">
+              <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
                 <RefreshCcw size={16} className="animate-spin" />
               </div>
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-widest opacity-80">Path Shadowing</p>
-                <p className="text-xs font-bold">State Transition Verified</p>
+              <div className="min-w-0">
+                <p className="text-[10px] font-black uppercase tracking-widest opacity-80 truncate">Path Shadowing</p>
+                <p className="text-xs font-bold truncate">State Transition Verified</p>
               </div>
             </motion.div>
           )}
@@ -118,11 +121,13 @@ const StateUpdateVisualizer: React.FC = () => {
                   animate={{ x: 0, opacity: 1 }}
                   className="p-3 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-between gap-4"
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="text-[10px] font-black opacity-30">#{h.step}</span>
-                    <span className="text-xs font-bold text-primary">{h.val}</span>
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="text-[10px] font-black opacity-30 shrink-0">#{h.step}</span>
+                    <span className="text-xs font-bold text-primary truncate">car: {h.val}</span>
                   </div>
-                  <span className="font-mono text-[10px] opacity-50 truncate max-w-[100px]">{h.hash}</span>
+                  <Tooltip content={h.hash}>
+                    <span className="font-mono text-[10px] opacity-50 truncate max-w-[100px] cursor-help">{h.hash}</span>
+                  </Tooltip>
                 </motion.div>
               ))}
            </div>

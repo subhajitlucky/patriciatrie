@@ -4,11 +4,20 @@ import { Search, Info, Fingerprint, Activity } from 'lucide-react';
 import { MerklePatriciaTrie } from '../../utils/mpt';
 import TrieNodeVisualizer from './TrieNodeVisualizer';
 import type { TrieNode } from '../../types/trie';
+import Tooltip from '../ui/Tooltip';
 
 const TrieComparisonVisualizer: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'trie' | 'tree' | 'map'>('trie');
   const [searchKey, setSearchKey] = useState('car');
   const [selectedNode, setSelectedNode] = useState<TrieNode | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  React.useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const trie = useMemo(() => {
     const t = new MerklePatriciaTrie();
@@ -68,13 +77,13 @@ const TrieComparisonVisualizer: React.FC = () => {
             />
           </div>
 
-          <div className="flex p-1.5 bg-neutral-100 dark:bg-neutral-950 rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-inner">
+          <div className="flex p-1.5 bg-neutral-100 dark:bg-neutral-950 rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-inner overflow-x-auto">
             {(['trie', 'tree', 'map'] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`
-                  px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300
+                  flex-1 min-w-[80px] px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 whitespace-nowrap cursor-pointer
                   ${activeTab === tab 
                     ? 'bg-primary text-white shadow-lg shadow-primary/30' 
                     : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'}
@@ -169,7 +178,7 @@ const TrieComparisonVisualizer: React.FC = () => {
                     <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-neutral-50 dark:bg-neutral-950 flex items-center justify-center text-xs sm:text-sm font-mono shadow-inner border border-neutral-100 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400">
                       {Math.abs(k.split('').reduce((a,b) => a + b.charCodeAt(0), 0) % 100)}
                     </div>
-                    <span className="font-bold text-xs sm:text-base tracking-tight text-neutral-900 dark:text-neutral-100">{k}</span>
+                    <span className="font-bold text-xs sm:text-base tracking-tight text-neutral-900 dark:text-neutral-100 truncate w-full text-center">{k}</span>
                   </motion.div>
                 ))}
               </div>
@@ -181,17 +190,27 @@ const TrieComparisonVisualizer: React.FC = () => {
         <AnimatePresence>
           {selectedNode && (
             <motion.div 
-              initial={{ x: 300, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: 300, opacity: 0 }}
-              className="absolute top-6 right-6 bottom-6 w-80 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl border border-neutral-200 dark:border-neutral-800 rounded-3xl shadow-2xl p-6 z-50 overflow-auto"
+              initial={isMobile ? { y: '100%', opacity: 0 } : { x: 300, opacity: 0 }}
+              animate={isMobile ? { y: 0, opacity: 1 } : { x: 0, opacity: 1 }}
+              exit={isMobile ? { y: '100%', opacity: 0 } : { x: 300, opacity: 0 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className={`
+                absolute z-50 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl shadow-2xl p-6 overflow-y-auto
+                bottom-0 left-0 right-0 w-full max-h-[70vh] rounded-t-[32px] border-t border-neutral-200 dark:border-neutral-800
+                sm:top-6 sm:right-6 sm:bottom-6 sm:left-auto sm:w-80 sm:max-h-none sm:h-auto sm:rounded-3xl sm:border sm:border-neutral-200 dark:sm:border-neutral-800
+              `}
             >
-              <div className="flex justify-between items-center mb-8">
+              <div className="flex justify-between items-center mb-8 sticky top-0 bg-inherit z-10 pb-2">
                 <h5 className="text-xs font-black uppercase tracking-widest text-primary">Node Inspector</h5>
-                <button onClick={() => setSelectedNode(null)} className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-full transition-colors">✕</button>
+                <button 
+                  onClick={() => setSelectedNode(null)} 
+                  className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-full transition-colors cursor-pointer"
+                >
+                  ✕
+                </button>
               </div>
               
-              <div className="space-y-6">
+              <div className="space-y-6 pb-6">
                 <div>
                    <div className="flex items-center gap-2 text-neutral-400 mb-2">
                       <Fingerprint size={14} />
@@ -240,11 +259,15 @@ const TrieComparisonVisualizer: React.FC = () => {
             <div className="flex flex-row justify-between items-end">
               <div>
                 <span className="text-[10px] uppercase font-black opacity-50 block mb-2">Complexity Class</span>
-                <p className="text-5xl font-black bg-gradient-to-r from-white to-white/50 bg-clip-text text-transparent">{stats[activeTab].complexity}</p>
+                <Tooltip content={stats[activeTab].explanation}>
+                  <p className="text-5xl font-black bg-gradient-to-r from-white to-white/50 bg-clip-text text-transparent cursor-help">{stats[activeTab].complexity}</p>
+                </Tooltip>
               </div>
               <div className="text-right">
                 <span className="text-[10px] uppercase font-black opacity-50 block mb-2">IO Traversal</span>
-                <p className="text-3xl font-black text-primary">{stats[activeTab].steps} ops</p>
+                <Tooltip content="Estimated number of database lookups">
+                  <p className="text-3xl font-black text-primary cursor-help">{stats[activeTab].steps} ops</p>
+                </Tooltip>
               </div>
             </div>
           </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Database, Zap, Shield, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import Tooltip from '../ui/Tooltip';
 
 const WhyBlockchainStateVisualizer: React.FC = () => {
   const [nodes, setNodes] = useState(5);
@@ -19,21 +20,23 @@ const WhyBlockchainStateVisualizer: React.FC = () => {
   return (
     <div className="w-full h-full flex flex-col gap-8 p-4">
       {/* Simulation Header */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-6 bg-white dark:bg-neutral-900 p-6 rounded-[32px] border border-neutral-200 dark:border-neutral-800 shadow-xl">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-rose-500/10 text-rose-500 rounded-2xl flex items-center justify-center">
+      <div className="flex flex-col lg:flex-row items-center justify-between gap-6 bg-white dark:bg-neutral-900 p-6 rounded-[32px] border border-neutral-200 dark:border-neutral-800 shadow-xl">
+        <div className="flex items-center gap-4 w-full lg:w-auto">
+          <div className="w-12 h-12 bg-rose-500/10 text-rose-500 rounded-2xl flex items-center justify-center shrink-0">
             <Database size={24} />
           </div>
           <div>
             <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest block mb-1">State Size</span>
-            <p className="font-mono text-xl font-black text-neutral-900 dark:text-white">{nodes}k Accounts</p>
+            <Tooltip content="Simulated number of global accounts">
+               <p className="font-mono text-xl font-black text-neutral-900 dark:text-white cursor-help">{nodes}k Accounts</p>
+            </Tooltip>
           </div>
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
           <button 
             onClick={() => { setIsExploding(!isExploding); setShowSolution(false); }}
-            className={`px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${isExploding ? 'bg-rose-500 text-white shadow-rose-500/20' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400'} shadow-lg active:scale-95 flex items-center gap-2`}
+            className={`px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all cursor-pointer ${isExploding ? 'bg-rose-500 text-white shadow-rose-500/20' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400'} shadow-lg active:scale-95 flex items-center gap-2`}
           >
             <Zap size={16} />
             {isExploding ? 'Stop Explosion' : 'Simulate Growth'}
@@ -41,7 +44,7 @@ const WhyBlockchainStateVisualizer: React.FC = () => {
           
           <button 
             onClick={() => { setShowSolution(true); setIsExploding(false); }}
-            className="px-6 py-3 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-600 transition-all shadow-lg shadow-primary/25 active:scale-95 flex items-center gap-2"
+            className="px-6 py-3 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-600 transition-all shadow-lg shadow-primary/25 active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
           >
             <Shield size={16} />
             Apply Trie Solution
@@ -50,7 +53,7 @@ const WhyBlockchainStateVisualizer: React.FC = () => {
       </div>
 
       {/* Visual Workspace */}
-      <div className="flex-1 min-h-[400px] relative bg-neutral-900 rounded-[40px] border border-neutral-800 overflow-hidden flex items-center justify-center p-12">
+      <div className="flex-1 min-h-[400px] relative bg-neutral-900 rounded-[40px] border border-neutral-800 overflow-hidden flex items-center justify-center p-4 sm:p-12">
         <div className="absolute inset-0 opacity-20">
           <div className="absolute inset-0 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:24px_24px]" />
         </div>
@@ -74,9 +77,11 @@ const WhyBlockchainStateVisualizer: React.FC = () => {
                 animate={{ opacity: 1 }}
                 className="absolute inset-0 flex items-center justify-center bg-rose-950/40 backdrop-blur-[2px]"
               >
-                <div className="text-center p-8 bg-neutral-900 border border-rose-500/50 rounded-3xl shadow-2xl">
+                <div className="text-center p-8 bg-neutral-900 border border-rose-500/50 rounded-3xl shadow-2xl mx-4">
                   <AlertTriangle size={48} className="text-rose-500 mx-auto mb-4 animate-bounce" />
-                  <h4 className="text-xl font-black text-white mb-2 uppercase tracking-tighter">State Explosion!</h4>
+                  <Tooltip content="Exponential growth of unverified data">
+                    <h4 className="text-xl font-black text-white mb-2 uppercase tracking-tighter cursor-help">State Explosion!</h4>
+                  </Tooltip>
                   <p className="text-rose-200/60 text-sm font-medium">Nodes can't keep up with verification.</p>
                 </div>
               </motion.div>
@@ -98,7 +103,9 @@ const WhyBlockchainStateVisualizer: React.FC = () => {
                   <CheckCircle2 size={64} className="text-primary" />
                </div>
             </div>
-            <h3 className="text-3xl font-black text-white mb-4">The State Root</h3>
+            <Tooltip content="The ultimate source of truth">
+               <h3 className="text-3xl font-black text-white mb-4 cursor-help">The State Root</h3>
+            </Tooltip>
             <p className="text-neutral-400 max-w-sm mx-auto leading-relaxed">
               Billions of accounts condensed into a <span className="text-primary font-bold">single 32-byte cryptographic anchor</span>. Efficient, verifiable, and scalable.
             </p>

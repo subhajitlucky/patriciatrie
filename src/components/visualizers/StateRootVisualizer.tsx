@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MerklePatriciaTrie } from '../../utils/mpt';
 import { ShieldCheck, Box, Fingerprint, AlertCircle, RefreshCw, Zap } from 'lucide-react';
+import Tooltip from '../ui/Tooltip';
 
 const StateRootVisualizer: React.FC = () => {
   const [isTampered, setIsTampered] = useState(false);
@@ -39,10 +40,12 @@ const StateRootVisualizer: React.FC = () => {
             <div className="space-y-6">
               <div className="p-6 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-sm">
                 <div className="flex justify-between items-center mb-4">
-                   <div className="flex items-center gap-2">
-                      <Fingerprint size={14} className="text-primary" />
-                      <span className="text-[10px] font-black uppercase tracking-widest opacity-50">State Root (stateRoot)</span>
-                   </div>
+                   <Tooltip content="The 32-byte Merkle Root of the global state trie">
+                     <div className="flex items-center gap-2 cursor-help">
+                        <Fingerprint size={14} className="text-primary" />
+                        <span className="text-[10px] font-black uppercase tracking-widest opacity-50">State Root (stateRoot)</span>
+                     </div>
+                   </Tooltip>
                    <AnimatePresence mode="wait">
                      <motion.div 
                        key={isTampered ? 'invalid' : 'valid'}
@@ -55,9 +58,11 @@ const StateRootVisualizer: React.FC = () => {
                      </motion.div>
                    </AnimatePresence>
                 </div>
-                <p className={`font-mono text-lg sm:text-2xl font-black break-all transition-colors duration-500 ${isTampered ? 'text-red-500' : 'text-primary'}`}>
-                  {rootHash}
-                </p>
+                <Tooltip content={isTampered ? "Invalid Hash (Tampered)" : "Valid Keccak-256 Hash"}>
+                  <p className={`font-mono text-lg sm:text-2xl font-black break-all transition-colors duration-500 cursor-help ${isTampered ? 'text-red-500' : 'text-primary'}`}>
+                    {rootHash}
+                  </p>
+                </Tooltip>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 opacity-40">
@@ -83,7 +88,7 @@ const StateRootVisualizer: React.FC = () => {
            <button 
              onClick={() => setIsTampered(!isTampered)}
              className={`
-               w-full py-4 rounded-2xl text-xs font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3
+               w-full py-4 rounded-2xl text-xs font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 cursor-pointer
                ${isTampered 
                  ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white' 
                  : 'bg-red-500 text-white shadow-lg shadow-red-500/30 active:scale-95'}

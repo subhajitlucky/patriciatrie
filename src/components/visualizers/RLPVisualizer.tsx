@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Binary, Box, ArrowRight, ArrowDown } from 'lucide-react';
+import Tooltip from '../ui/Tooltip';
 
 const RLPVisualizer: React.FC = () => {
   const [input, setInput] = useState('cat');
@@ -16,7 +17,7 @@ const RLPVisualizer: React.FC = () => {
     <div className="w-full h-full flex flex-col gap-6 sm:gap-8 p-2 sm:p-4">
       <div className="bg-white dark:bg-neutral-900 p-5 sm:p-8 rounded-[32px] sm:rounded-[40px] border border-neutral-200 dark:border-neutral-800 shadow-xl">
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-6 sm:gap-8">
-           <div className="flex-1 space-y-3">
+           <div className="flex-1 space-y-3 min-w-0">
               <label className="text-[10px] font-black text-neutral-400 uppercase tracking-widest block">Input Data</label>
               <input 
                 type="text" 
@@ -35,11 +36,13 @@ const RLPVisualizer: React.FC = () => {
               <ArrowDown className="text-neutral-300" size={24} />
            </div>
 
-           <div className="flex-1 space-y-3">
+           <div className="flex-1 space-y-3 min-w-0">
               <label className="text-[10px] font-black text-neutral-400 uppercase tracking-widest block">RLP Result</label>
-              <div className="w-full bg-neutral-900 p-4 rounded-2xl font-mono text-xl text-primary break-all min-h-[64px] flex items-center shadow-inner">
-                 {getRLP(input)}
-              </div>
+              <Tooltip content="Recursive Length Prefix Encoded Hex">
+                <div className="w-full bg-neutral-900 p-4 rounded-2xl font-mono text-xl text-primary break-all min-h-[64px] flex items-center shadow-inner cursor-help">
+                   {getRLP(input)}
+                </div>
+              </Tooltip>
            </div>
         </div>
       </div>
@@ -47,23 +50,27 @@ const RLPVisualizer: React.FC = () => {
       <div className="flex-1 min-h-[300px] bg-neutral-950 rounded-[32px] sm:rounded-[40px] border border-neutral-800 p-6 sm:p-12 flex items-center justify-center relative overflow-hidden">
         <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:20px_20px]" />
         
-        <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
+        <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-8 w-full justify-center">
            <motion.div 
              animate={{ scale: [1, 1.02, 1] }}
              transition={{ duration: 3, repeat: Infinity }}
-             className="p-6 sm:p-8 bg-neutral-900 border-2 border-primary/30 rounded-3xl flex flex-col items-center gap-3 shadow-2xl"
+             className="p-6 sm:p-8 bg-neutral-900 border-2 border-primary/30 rounded-3xl flex flex-col items-center gap-3 shadow-2xl max-w-full"
            >
               <Box className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
-              <span className="font-mono text-sm text-white font-bold">{input || 'empty'}</span>
+              <Tooltip content="Raw String Input">
+                 <span className="font-mono text-sm text-white font-bold truncate max-w-[120px] sm:max-w-[200px] cursor-help">{input || 'empty'}</span>
+              </Tooltip>
            </motion.div>
            
            <div className="w-1 h-8 sm:w-16 sm:h-1 bg-gradient-to-b sm:bg-gradient-to-r from-primary to-violet-500 opacity-50" />
 
            <motion.div 
-             className="p-6 sm:p-8 bg-violet-500/10 border-2 border-violet-500/30 rounded-3xl flex flex-col items-center gap-3 shadow-2xl"
+             className="p-6 sm:p-8 bg-violet-500/10 border-2 border-violet-500/30 rounded-3xl flex flex-col items-center gap-3 shadow-2xl max-w-full"
            >
               <Binary className="w-8 h-8 sm:w-10 sm:h-10 text-violet-500" />
-              <span className="font-mono text-sm text-violet-400 font-bold">{getRLP(input)}</span>
+              <Tooltip content="Encoded Output">
+                 <span className="font-mono text-sm text-violet-400 font-bold truncate max-w-[120px] sm:max-w-[200px] cursor-help">{getRLP(input)}</span>
+              </Tooltip>
            </motion.div>
         </div>
       </div>
