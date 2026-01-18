@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Info, Fingerprint, Activity } from 'lucide-react';
 import { MerklePatriciaTrie } from '../../utils/mpt';
@@ -9,8 +9,7 @@ const TrieComparisonVisualizer: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'trie' | 'tree' | 'map'>('trie');
   const [searchKey, setSearchKey] = useState('car');
   const [selectedNode, setSelectedNode] = useState<TrieNode | null>(null);
-  const [highlightedNodes, setHighlightedNodes] = useState<Set<string>>(new Set());
-  
+
   const trie = useMemo(() => {
     const t = new MerklePatriciaTrie();
     t.insert('cat', 'meow');
@@ -20,14 +19,13 @@ const TrieComparisonVisualizer: React.FC = () => {
     return t;
   }, []);
 
-  // Advanced Path Tracing Engine
-  useEffect(() => {
+  const highlightedNodes = useMemo(() => {
     const proof = trie.getProof(searchKey);
     const nodes = new Set<string>();
     proof.forEach(node => {
       if (node) nodes.add(node.hash);
     });
-    setHighlightedNodes(nodes);
+    return nodes;
   }, [searchKey, trie]);
 
   const stats = useMemo(() => {

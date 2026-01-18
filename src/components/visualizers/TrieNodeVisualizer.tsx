@@ -106,7 +106,7 @@ const TrieNodeVisualizer: React.FC<TrieNodeVisualizerProps> = ({
           </div>
         );
 
-      case NodeType.BRANCH:
+      case NodeType.BRANCH: {
         const childIndices = node.branches.map((b, i) => b ? i : null).filter(i => i !== null) as number[];
         
         return (
@@ -179,6 +179,7 @@ const TrieNodeVisualizer: React.FC<TrieNodeVisualizerProps> = ({
             </div>
           </div>
         );
+      }
 
       default:
         return null;

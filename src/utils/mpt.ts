@@ -60,9 +60,47 @@ export class MerklePatriciaTrie {
     return this.nodes[hash] || null;
   }
 
+  get(key: string): string | null {
+    const nibbles = stringToNibbles(key);
+    return this._get(this.rootHash, nibbles);
+  }
+
+  private _get(nodeHash: string | null, path: Nibble[]): string | null {
+    if (!nodeHash) return null;
+    const node = this.getNode(nodeHash);
+    if (!node) return null;
+
+    if (node.type === NodeType.LEAF) {
+      if (nibblesToHex(node.path) === nibblesToHex(path)) {
+        return node.value;
+      }
+      return null;
+    }
+
+    if (node.type === NodeType.EXTENSION) {
+      const sharedPath = getSharedPath(node.path, path);
+      if (sharedPath.length === node.path.length) {
+        return this._get(node.nextNodeHash, path.slice(sharedPath.length));
+      }
+      return null;
+    }
+
+    if (node.type === NodeType.BRANCH) {
+      if (path.length === 0) {
+        return node.value;
+      }
+      const nibble = path[0];
+      return this._get(node.branches[nibble], path.slice(1));
+    }
+
+    return null;
+  }
+
   putNode(node: TrieNode): string {
     const nodeData = JSON.stringify(node);
-    const nodeHash = '0x' + hash(nodeData);
+    // Simulation of Keccak-256: 64 chars hex
+    const h = hash(nodeData);
+    const nodeHash = '0x' + h.repeat(8).substring(0, 64);
     const newNode = { ...node, hash: nodeHash };
     this.nodes[nodeHash] = newNode;
     this.affectedNodes.add(nodeHash);
