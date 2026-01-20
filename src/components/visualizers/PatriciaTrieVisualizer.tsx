@@ -153,7 +153,7 @@ const PatriciaTrieVisualizer: React.FC = () => {
     });
 
     setNodes(newNodes);
-  }, [mode, datasetKey]);
+  }, []);
 
   useLayoutEffect(() => {
     updateNodePositions();
@@ -291,18 +291,26 @@ const PatriciaTrieVisualizer: React.FC = () => {
 };
 
 // --- Recursive component that draws lines based on the Map of coordinates ---
-const TreeEdges = ({ node, nodesMap, activePath, animatingNode, isPatricia }: any) => {
+interface TreeEdgesProps {
+  node: TrieNode;
+  nodesMap: Map<string, { x: number, y: number }>;
+  activePath: string[];
+  animatingNode: string | null;
+  isPatricia: boolean;
+}
+
+const TreeEdges = ({ node, nodesMap, activePath, animatingNode, isPatricia }: TreeEdgesProps) => {
   if (!node.children) return null;
 
   return (
     <>
-      {node.children.map((child: any) => {
+      {node.children.map((child: TrieNode) => {
         const start = nodesMap.get(node.id);
         const end = nodesMap.get(child.id);
 
         if (!start || !end) return null;
 
-        const curve = 40;
+        const curve = 25;
         const d = `M ${start.x} ${start.y} C ${start.x + curve} ${start.y}, ${end.x - curve} ${end.y}, ${end.x} ${end.y}`;
         
         const isActive = activePath.includes(child.id);
@@ -311,7 +319,7 @@ const TreeEdges = ({ node, nodesMap, activePath, animatingNode, isPatricia }: an
         return (
           <g key={`${node.id}-${child.id}`}>
             {/* SOLID VISIBLE GRAY LINE */}
-            <path d={d} stroke="currentColor" className="text-neutral-300 dark:text-neutral-800" strokeWidth="3" fill="none" />
+            <path d={d} stroke="currentColor" className="text-neutral-300 dark:text-neutral-600" strokeWidth="3" fill="none" />
             
             {/* ACTIVE COLORED LINE */}
             {isActive && (
@@ -333,10 +341,18 @@ const TreeEdges = ({ node, nodesMap, activePath, animatingNode, isPatricia }: an
   );
 };
 
-const TreeNodeComponent = ({ node, isPatricia, activePath, animatingNode }: { node: TrieNode, isPatricia: boolean, activePath: string[], animatingNode: string | null }) => {
+interface TreeNodeComponentProps {
+  node: TrieNode;
+  isPatricia: boolean;
+  activePath: string[];
+  animatingNode: string | null;
+}
+
+const TreeNodeComponent = ({ node, isPatricia, activePath, animatingNode }: TreeNodeComponentProps) => {
   const isRoot = node.label === 'root';
   const isCompressed = node.label.length > 1 && !isRoot;
-  const isVisited = activePath.includes(node.id) && (activePath.indexOf(node.id) <= activePath.indexOf(animatingNode || ''));
+  const isActive = activePath.includes(node.id);
+  const isVisited = isActive && (activePath.indexOf(node.id) <= activePath.indexOf(animatingNode || ''));
   const isCurrent = animatingNode === node.id;
 
   return (
@@ -350,12 +366,14 @@ const TreeNodeComponent = ({ node, isPatricia, activePath, animatingNode }: { no
             boxShadow: isCurrent ? '0 0 20px rgba(59, 130, 246, 0.2)' : 'none'
           }}
           className={`
-            relative z-10 flex items-center justify-center font-mono font-black
+            relative z-10 flex items-center justify-center font-mono font-black transition-all duration-300
             ${isRoot ? 'w-10 h-10 md:w-14 md:h-14 bg-neutral-900 text-white rounded-full shadow-xl' : ''}
             ${!isRoot && !isCompressed ? 'w-8 h-8 md:w-10 md:h-10 border-2 bg-white dark:bg-neutral-900 rounded-full text-[10px] md:text-xs' : ''}
             ${isCompressed ? 'h-8 md:h-10 px-3 md:px-4 border-2 bg-pink-50 dark:bg-neutral-900 text-pink-600 dark:text-pink-400 rounded-full text-[10px] md:text-xs' : ''}
             ${node.isWord && !isRoot ? 'ring-2 ring-emerald-500/20 !border-emerald-500 !text-emerald-600' : ''}
-          `}
+             
+             ${isActive ? (isPatricia ? 'border-pink-500' : 'border-blue-500') : 'border-neutral-200 dark:border-neutral-600'}
+           `}
         >
           {isRoot ? <Database size={14} className="md:w-[18px] md:h-[18px]" /> : node.label}
           

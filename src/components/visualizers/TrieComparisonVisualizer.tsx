@@ -40,8 +40,8 @@ const TRIE_DATA: VisualNode = {
         {
           id: 'ca', label: 'a',
           children: [
-            { id: 'car', label: 'r', isWord: true },
-            { id: 'cat', label: 't', isWord: true, isFound: true }
+            { id: 'car', label: 'r', isFound: false },
+            { id: 'cat', label: 't', isFound: true }
           ]
         }
       ]
@@ -52,13 +52,13 @@ const TRIE_DATA: VisualNode = {
         {
           id: 'do', label: 'o',
           children: [
-            { id: 'dog', label: 'g', isWord: true }
+            { id: 'dog', label: 'g', isFound: false }
           ]
         }
       ]
     }
   ]
-} as any; 
+};
 
 // 3. MAP DATA (Buckets)
 const MAP_BUCKETS = Array.from({ length: 6 }).map((_, i) => ({ id: `b${i}`, label: `0x0${i}` }));
@@ -227,7 +227,15 @@ const TrieComparisonVisualizer: React.FC = () => {
 
 // --- SUB-COMPONENTS ---
 
-const TabButton = ({ id, icon: Icon, label, active, onClick }: any) => (
+interface TabButtonProps {
+  id: 'tree' | 'trie' | 'map';
+  icon: React.ElementType;
+  label: string;
+  active: 'tree' | 'trie' | 'map';
+  onClick: (id: 'tree' | 'trie' | 'map') => void;
+}
+
+const TabButton = ({ id, icon: Icon, label, active, onClick }: TabButtonProps) => (
   <button
     onClick={() => onClick(id)}
     className={`
@@ -241,7 +249,14 @@ const TabButton = ({ id, icon: Icon, label, active, onClick }: any) => (
   </button>
 );
 
-const InfoCard = ({ label, value, desc, highlight }: any) => (
+interface InfoCardProps {
+  label: string;
+  value: string;
+  desc: string;
+  highlight?: boolean;
+}
+
+const InfoCard = ({ label, value, desc, highlight }: InfoCardProps) => (
   <div className={`p-5 rounded-2xl border ${highlight ? 'bg-orange-500/5 border-orange-500/20' : 'bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800'}`}>
      <div className="text-[10px] font-black uppercase text-neutral-400 tracking-widest mb-1">{label}</div>
      <div className={`text-xl font-black mb-1 ${highlight ? 'text-orange-600 dark:text-orange-400' : 'text-neutral-900 dark:text-white'}`}>{value}</div>
@@ -272,9 +287,12 @@ const TreeEngine = ({ data, activePath, isTrie = false }: { data: VisualNode, ac
   }, [data]);
 
   useLayoutEffect(() => {
-    updatePositions();
+    const timer = requestAnimationFrame(() => updatePositions());
     window.addEventListener('resize', updatePositions);
-    return () => window.removeEventListener('resize', updatePositions);
+    return () => {
+      window.removeEventListener('resize', updatePositions);
+      cancelAnimationFrame(timer);
+    };
   }, [updatePositions]);
 
   return (
@@ -291,7 +309,13 @@ const TreeEngine = ({ data, activePath, isTrie = false }: { data: VisualNode, ac
   );
 };
 
-const RecursiveNode = ({ node, activePath, isTrie }: any) => {
+interface RecursiveNodeProps {
+  node: VisualNode;
+  activePath: string[];
+  isTrie?: boolean;
+}
+
+const RecursiveNode = ({ node, activePath, isTrie }: RecursiveNodeProps) => {
   const isActive = activePath.includes(node.id);
   const isTarget = node.isFound && isActive && activePath[activePath.length - 1] === node.id;
 
@@ -322,7 +346,7 @@ const RecursiveNode = ({ node, activePath, isTrie }: any) => {
       
       {node.children && (
         <div className="flex flex-col gap-4 md:gap-12">
-          {node.children.map((child: any) => (
+          {node.children.map((child: VisualNode) => (
             <RecursiveNode key={child.id} node={child} activePath={activePath} isTrie={isTrie} />
           ))}
         </div>
@@ -331,16 +355,22 @@ const RecursiveNode = ({ node, activePath, isTrie }: any) => {
   );
 };
 
-const RecursiveLines = ({ node, nodes, activePath, isTrie }: any) => {
+interface RecursiveLinesProps {
+  node: VisualNode;
+  nodes: Map<string, { x: number, y: number }>;
+  activePath: string[];
+  isTrie?: boolean;
+}
+
+const RecursiveLines = ({ node, nodes, activePath, isTrie }: RecursiveLinesProps) => {
   if (!node.children) return null;
   return (
     <>
-      {node.children.map((child: any) => {
+      {node.children.map((child: VisualNode) => {
         const start = nodes.get(node.id);
         const end = nodes.get(child.id);
         if (!start || !end) return null;
 
-        // Tighter curve for mobile
         const curve = 30; 
         const d = `M ${start.x} ${start.y} C ${start.x + curve} ${start.y}, ${end.x - curve} ${end.y}, ${end.x} ${end.y}`;
         const isActive = activePath.includes(child.id);
@@ -367,8 +397,13 @@ const RecursiveLines = ({ node, nodes, activePath, isTrie }: any) => {
   );
 };
 
+interface MapEngineProps {
+  buckets: { id: string; label: string }[];
+  activePath: string[];
+}
+
 // 2. Hash Map Engine
-const MapEngine = ({ buckets, activePath }: any) => {
+const MapEngine = ({ buckets, activePath }: MapEngineProps) => {
   const isHashing = activePath.includes('hash');
   const isFound = activePath.includes('b3');
 
@@ -398,14 +433,14 @@ const MapEngine = ({ buckets, activePath }: any) => {
           </motion.div>
        </div>
 
-       {/* Arrow 2 (Mobile only or Desktop) */}
+       {/* Arrow 2 */}
        <div className="text-neutral-300 dark:text-neutral-700 rotate-90 md:rotate-0">
           <ArrowRight size={20} className="md:w-6 md:h-6" />
        </div>
 
        {/* Buckets */}
        <div className="grid grid-cols-2 md:grid-cols-1 gap-2 w-full max-w-[280px] md:max-w-[200px]">
-          {buckets.map((b: any) => (
+          {buckets.map((b: { id: string; label: string }) => (
              <motion.div 
                key={b.id}
                animate={{ 
