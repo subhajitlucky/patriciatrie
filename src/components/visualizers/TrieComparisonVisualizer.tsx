@@ -14,14 +14,14 @@ interface VisualNode {
 
 // --- DATASETS ---
 
-// 1. BST DATA (Alphabetical Order)
+// 1. BST DATA
 const TREE_DATA: VisualNode = {
   id: 'dog', label: 'dog',
   children: [
     {
       id: 'car', label: 'car',
       children: [
-        { id: 'cat', label: 'cat', isFound: true } // Target: cat
+        { id: 'cat', label: 'cat', isFound: true } 
       ]
     },
     {
@@ -60,7 +60,7 @@ const TRIE_DATA: VisualNode = {
   ]
 };
 
-// 3. MAP DATA (Buckets)
+// 3. MAP DATA
 const MAP_BUCKETS = Array.from({ length: 6 }).map((_, i) => ({ id: `b${i}`, label: `0x0${i}` }));
 
 
@@ -71,7 +71,6 @@ const TrieComparisonVisualizer: React.FC = () => {
   const [status, setStatus] = useState('Ready');
   const [activePath, setActivePath] = useState<string[]>([]);
   
-  // Reset state on tab change
   useEffect(() => {
     setActivePath([]);
     setIsAnimating(false);
@@ -92,21 +91,17 @@ const TrieComparisonVisualizer: React.FC = () => {
   const simulateTree = () => {
     const path = ['dog', 'car', 'cat'];
     let step = 0;
-    
     const next = () => {
       if (step >= path.length) {
         setStatus('Found "cat"!');
         setTimeout(() => setIsAnimating(false), 1500);
         return;
       }
-      
       const node = path[step];
       setActivePath(prev => [...prev, node]);
-      
       if (node === 'cat') setStatus('Match Found!');
-      else if (node === 'dog') setStatus('"cat" < "dog" → Go Left');
-      else if (node === 'car') setStatus('"cat" > "car" → Go Right');
-      
+      else if (node === 'dog') setStatus('"cat" < "dog" → Left');
+      else if (node === 'car') setStatus('"cat" > "car" → Right');
       step++;
       setTimeout(next, 1000);
     };
@@ -116,20 +111,16 @@ const TrieComparisonVisualizer: React.FC = () => {
   const simulateTrie = () => {
     const path = ['root', 'c', 'ca', 'cat'];
     let step = 0;
-
     const next = () => {
       if (step >= path.length) {
         setStatus('Found "cat"!');
         setTimeout(() => setIsAnimating(false), 1500);
         return;
       }
-      
       const node = path[step];
       setActivePath(prev => [...prev, node]);
-      
       if (node === 'root') setStatus('Start at Root');
       else setStatus(`Follow '${node.slice(-1)}' edge...`);
-      
       step++;
       setTimeout(next, 800);
     };
@@ -139,11 +130,9 @@ const TrieComparisonVisualizer: React.FC = () => {
   const simulateMap = () => {
     setStatus('Hashing "cat"...');
     setActivePath(['hash']);
-    
     setTimeout(() => {
       setStatus('Hash: 0x94... (Index 3)');
       setActivePath(['hash', 'beam']);
-      
       setTimeout(() => {
         setStatus('Direct Access: Bucket 3');
         setActivePath(['hash', 'beam', 'b3']);
@@ -154,7 +143,6 @@ const TrieComparisonVisualizer: React.FC = () => {
 
   return (
     <div className="w-full flex flex-col gap-6">
-      {/* Header / Controls */}
       <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white dark:bg-neutral-900 p-4 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm">
         <div className="flex p-1 bg-neutral-100 dark:bg-neutral-950 rounded-2xl border border-neutral-200 dark:border-neutral-800">
           <TabButton id="tree" icon={Network} label="BST Tree" active={activeTab} onClick={setActiveTab} />
@@ -170,12 +158,7 @@ const TrieComparisonVisualizer: React.FC = () => {
            <button
              onClick={handleSimulate}
              disabled={isAnimating}
-             className={`
-               px-8 py-3 rounded-xl font-black text-xs uppercase tracking-widest flex items-center gap-2 transition-all
-               ${isAnimating 
-                 ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-400 cursor-not-allowed' 
-                 : 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 hover:scale-105 shadow-lg'}
-             `}
+             className={`px-8 py-3 rounded-xl font-black text-xs uppercase tracking-widest flex items-center gap-2 transition-all ${isAnimating ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-400 cursor-not-allowed' : 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 hover:scale-105 shadow-lg'}`}
            >
              {isAnimating ? <Activity className="animate-spin" size={14} /> : <Search size={14} />}
              {isAnimating ? 'Running...' : 'Visualize Search'}
@@ -183,16 +166,12 @@ const TrieComparisonVisualizer: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Canvas */}
       <div className="relative w-full min-h-[500px] bg-white dark:bg-neutral-950 rounded-[40px] border border-neutral-200 dark:border-neutral-800 p-8 md:p-12 flex items-center justify-center overflow-hidden">
          <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(#262626_1px,transparent_1px)] [background-size:32px_32px] opacity-50 pointer-events-none" />
          
-         {/* Status HUD */}
          <div className="absolute top-6 left-6 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 px-4 py-3 rounded-2xl shadow-xl z-30 max-w-[200px] md:max-w-xs">
             <div className="text-[10px] font-black uppercase text-neutral-400 tracking-widest mb-1">Process Log</div>
-            <div className="font-mono text-xs md:text-sm font-bold text-orange-500 truncate">
-               {status}
-            </div>
+            <div className="font-mono text-xs md:text-sm font-bold text-orange-500 truncate">{status}</div>
          </div>
 
          <div className="relative z-10 w-full h-full flex items-center justify-center">
@@ -202,24 +181,10 @@ const TrieComparisonVisualizer: React.FC = () => {
          </div>
       </div>
       
-      {/* Legend / Info */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-         <InfoCard 
-           label="Complexity" 
-           value={activeTab === 'tree' ? 'O(log N)' : activeTab === 'trie' ? 'O(k)' : 'O(1)'}
-           desc={activeTab === 'tree' ? 'Depends on data size' : activeTab === 'trie' ? 'Depends on key length' : 'Instant access'}
-         />
-         <InfoCard 
-           label="Structure" 
-           value={activeTab === 'tree' ? 'Binary Tree' : activeTab === 'trie' ? 'Prefix Tree' : 'Hash Table'}
-           desc={activeTab === 'tree' ? 'Values sorted by comparison' : activeTab === 'trie' ? 'Values stored by path' : 'Values stored by index'}
-         />
-         <InfoCard 
-           label="Blockchain Fit" 
-           value={activeTab === 'trie' ? 'Perfect' : 'Poor'}
-           desc={activeTab === 'trie' ? 'Deterministic & Merkle-compatible' : 'Hard to verify cryptographically'}
-           highlight={activeTab === 'trie'}
-         />
+         <InfoCard label="Complexity" value={activeTab === 'tree' ? 'O(log N)' : activeTab === 'trie' ? 'O(k)' : 'O(1)'} desc={activeTab === 'tree' ? 'Depends on data size' : activeTab === 'trie' ? 'Depends on key length' : 'Instant access'} />
+         <InfoCard label="Structure" value={activeTab === 'tree' ? 'Binary Tree' : activeTab === 'trie' ? 'Prefix Tree' : 'Hash Table'} desc={activeTab === 'tree' ? 'Sorted by comparison' : activeTab === 'trie' ? 'Stored by path' : 'Stored by index'} />
+         <InfoCard label="Blockchain Fit" value={activeTab === 'trie' ? 'Perfect' : 'Poor'} desc={activeTab === 'trie' ? 'Deterministic & Merkle-friendly' : 'Hard to verify cryptographically'} highlight={activeTab === 'trie'} />
       </div>
     </div>
   );
@@ -236,15 +201,7 @@ interface TabButtonProps {
 }
 
 const TabButton = ({ id, icon: Icon, label, active, onClick }: TabButtonProps) => (
-  <button
-    onClick={() => onClick(id)}
-    className={`
-      flex items-center gap-2 px-4 md:px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all
-      ${active === id 
-        ? 'bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white shadow-md' 
-        : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'}
-    `}
-  >
+  <button onClick={() => onClick(id)} className={`flex items-center gap-2 px-4 md:px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${active === id ? 'bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white shadow-md' : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'}`}>
     <Icon size={14} /> <span className="hidden md:inline">{label}</span>
   </button>
 );
@@ -266,7 +223,6 @@ const InfoCard = ({ label, value, desc, highlight }: InfoCardProps) => (
 
 // --- ENGINES ---
 
-// 1. Tree/Trie Engine
 const TreeEngine = ({ data, activePath, isTrie = false }: { data: VisualNode, activePath: string[], isTrie?: boolean }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [nodes, setNodes] = useState<Map<string, {x:number, y:number}>>(new Map());
@@ -275,7 +231,6 @@ const TreeEngine = ({ data, activePath, isTrie = false }: { data: VisualNode, ac
     if (!containerRef.current) return;
     const parentRect = containerRef.current.getBoundingClientRect();
     const newNodes = new Map();
-    
     containerRef.current.querySelectorAll('[data-id]').forEach(el => {
       const rect = el.getBoundingClientRect();
       newNodes.set(el.getAttribute('data-id'), {
@@ -284,7 +239,7 @@ const TreeEngine = ({ data, activePath, isTrie = false }: { data: VisualNode, ac
       });
     });
     setNodes(newNodes);
-  }, [data]);
+  }, []); // Remove 'data' dependency
 
   useLayoutEffect(() => {
     const timer = requestAnimationFrame(() => updatePositions());
@@ -323,27 +278,13 @@ const RecursiveNode = ({ node, activePath, isTrie }: RecursiveNodeProps) => {
     <div className="flex flex-row items-center gap-8 md:gap-24">
       <div data-id={node.id} className="relative">
          <motion.div
-           animate={{
-             scale: isActive ? 1.1 : 1,
-             borderColor: isActive ? (isTrie ? '#ec4899' : '#3b82f6') : (isTarget ? '#10b981' : '#e5e5e5'),
-             boxShadow: isActive ? '0 0 15px rgba(0,0,0,0.1)' : 'none'
-           }}
-           className={`
-             w-10 h-10 md:w-14 md:h-14 rounded-full border-2 flex items-center justify-center font-mono font-bold text-[10px] md:text-sm shadow-sm
-             ${isActive ? 'bg-neutral-50 dark:bg-neutral-800' : 'bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800'}
-             ${isActive ? (isTrie ? 'text-pink-600 dark:text-pink-400 border-pink-500' : 'text-blue-600 dark:text-blue-400 border-blue-500') : 'text-neutral-500 dark:text-neutral-400'}
-             ${isTarget ? '!bg-emerald-500 !border-emerald-500 !text-white' : ''}
-           `}
+           animate={{ scale: isActive ? 1.1 : 1, borderColor: isActive ? (isTrie ? '#ec4899' : '#3b82f6') : '#e5e5e5' }}
+           className={`w-10 h-10 md:w-14 md:h-14 rounded-full border-2 flex items-center justify-center font-mono font-bold text-[10px] md:text-sm shadow-sm ${isActive ? 'bg-neutral-50 dark:bg-neutral-800' : 'bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800'} ${isActive ? (isTrie ? 'text-pink-600 dark:text-pink-400 border-pink-500' : 'text-blue-600 dark:text-blue-400 border-blue-500') : 'text-neutral-500 dark:text-neutral-400'} ${isTarget ? '!bg-emerald-500 !border-emerald-500 !text-white' : ''}`}
          >
            {node.label}
          </motion.div>
-         {isTarget && (
-           <div className="absolute -bottom-5 md:-bottom-6 left-1/2 -translate-x-1/2 bg-emerald-500 text-white text-[8px] font-black uppercase px-2 py-0.5 rounded-full whitespace-nowrap">
-             Target
-           </div>
-         )}
+         {isTarget && <div className="absolute -bottom-5 md:-bottom-6 left-1/2 -translate-x-1/2 bg-emerald-500 text-white text-[8px] font-black uppercase px-2 py-0.5 rounded-full whitespace-nowrap">Target</div>}
       </div>
-      
       {node.children && (
         <div className="flex flex-col gap-4 md:gap-12">
           {node.children.map((child: VisualNode) => (
@@ -370,25 +311,12 @@ const RecursiveLines = ({ node, nodes, activePath, isTrie }: RecursiveLinesProps
         const start = nodes.get(node.id);
         const end = nodes.get(child.id);
         if (!start || !end) return null;
-
-        const curve = 30; 
-        const d = `M ${start.x} ${start.y} C ${start.x + curve} ${start.y}, ${end.x - curve} ${end.y}, ${end.x} ${end.y}`;
+        const d = `M ${start.x} ${start.y} C ${start.x + 30} ${start.y}, ${end.x - 30} ${end.y}, ${end.x} ${end.y}`;
         const isActive = activePath.includes(child.id);
-
         return (
           <g key={child.id}>
             <path d={d} strokeWidth="2" fill="none" className="stroke-neutral-300 dark:stroke-neutral-700" />
-            {isActive && (
-              <motion.path 
-                d={d} 
-                stroke={isTrie ? '#ec4899' : '#3b82f6'} 
-                strokeWidth="3" 
-                fill="none" 
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ duration: 0.5 }}
-              />
-            )}
+            {isActive && <motion.path d={d} stroke={isTrie ? '#ec4899' : '#3b82f6'} strokeWidth="3" fill="none" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.5 }} />}
             <RecursiveLines node={child} nodes={nodes} activePath={activePath} isTrie={isTrie} />
           </g>
         );
@@ -402,56 +330,26 @@ interface MapEngineProps {
   activePath: string[];
 }
 
-// 2. Hash Map Engine
 const MapEngine = ({ buckets, activePath }: MapEngineProps) => {
   const isHashing = activePath.includes('hash');
   const isFound = activePath.includes('b3');
-
   return (
     <div className="flex flex-col md:flex-row items-center gap-6 md:gap-16 w-full justify-center py-8">
-       {/* Input Key */}
        <div className="flex flex-col items-center gap-2">
-          <div className="w-14 h-14 md:w-20 md:h-20 bg-white dark:bg-neutral-900 border-2 border-neutral-200 dark:border-neutral-800 rounded-2xl flex items-center justify-center font-mono font-black text-sm md:text-lg shadow-sm">
-             "cat"
-          </div>
+          <div className="w-14 h-14 md:w-20 md:h-20 bg-white dark:bg-neutral-900 border-2 border-neutral-200 dark:border-neutral-800 rounded-2xl flex items-center justify-center font-mono font-black text-sm md:text-lg shadow-sm">"cat"</div>
           <span className="text-[10px] font-black uppercase text-neutral-400">Key</span>
        </div>
-
-       {/* Arrow */}
-       <div className="text-neutral-300 dark:text-neutral-700 rotate-90 md:rotate-0">
-          <ArrowRight size={20} className="md:w-6 md:h-6" />
-       </div>
-
-       {/* Hash Function */}
+       <div className="text-neutral-300 dark:text-neutral-700 rotate-90 md:rotate-0"><ArrowRight size={20} className="md:w-6 md:h-6" /></div>
        <div className="relative">
-          <motion.div 
-            animate={{ scale: isHashing ? 1.1 : 1, borderColor: isHashing ? '#f97316' : '#e5e5e5' }}
-            className={`w-20 h-20 md:w-32 md:h-32 rounded-full border-4 flex flex-col items-center justify-center bg-white dark:bg-neutral-900 z-10 relative transition-colors ${isHashing ? 'border-orange-500' : 'border-neutral-200 dark:border-neutral-800'}`}
-          >
+          <motion.div animate={{ scale: isHashing ? 1.1 : 1, borderColor: isHashing ? '#f97316' : '#e5e5e5' }} className={`w-20 h-20 md:w-32 md:h-32 rounded-full border-4 flex flex-col items-center justify-center bg-white dark:bg-neutral-900 z-10 relative transition-colors ${isHashing ? 'border-orange-500' : 'border-neutral-200 dark:border-neutral-800'}`}>
              <Cpu size={24} className={`md:w-8 md:h-8 ${isHashing ? 'text-orange-500' : 'text-neutral-300'}`} />
              <span className="text-[8px] md:text-[10px] font-black uppercase mt-2 text-neutral-500">Hash Fn</span>
           </motion.div>
        </div>
-
-       {/* Arrow 2 */}
-       <div className="text-neutral-300 dark:text-neutral-700 rotate-90 md:rotate-0">
-          <ArrowRight size={20} className="md:w-6 md:h-6" />
-       </div>
-
-       {/* Buckets */}
+       <div className="text-neutral-300 dark:text-neutral-700 rotate-90 md:rotate-0"><ArrowRight size={20} className="md:w-6 md:h-6" /></div>
        <div className="grid grid-cols-2 md:grid-cols-1 gap-2 w-full max-w-[280px] md:max-w-[200px]">
           {buckets.map((b: { id: string; label: string }) => (
-             <motion.div 
-               key={b.id}
-               animate={{ 
-                 scale: b.id === 'b3' && isFound ? 1.05 : 1,
-                 borderColor: b.id === 'b3' && isFound ? '#10b981' : ''
-               }}
-               className={`
-                 w-full p-2 rounded-lg border-2 border-neutral-200 dark:border-neutral-800 flex items-center justify-between px-3 md:px-4 bg-white dark:bg-neutral-900 transition-colors
-                 ${b.id === 'b3' && isFound ? '!border-emerald-500 !bg-emerald-50 dark:!bg-emerald-900/20 text-emerald-600' : 'text-neutral-500'}
-               `}
-             >
+             <motion.div key={b.id} animate={{ scale: b.id === 'b3' && isFound ? 1.05 : 1, borderColor: b.id === 'b3' && isFound ? '#10b981' : '' }} className={`w-full p-2 rounded-lg border-2 border-neutral-200 dark:border-neutral-800 flex items-center justify-between px-3 md:px-4 bg-white dark:bg-neutral-900 transition-colors ${b.id === 'b3' && isFound ? '!border-emerald-500 !bg-emerald-50 dark:!bg-emerald-900/20 text-emerald-600' : 'text-neutral-500'}`}>
                 <span className="font-mono text-[10px] md:text-xs font-bold">{b.label}</span>
                 {b.id === 'b3' && isFound ? <span className="font-black text-[8px] md:text-xs">VALUE</span> : <span className="text-[8px] md:text-[10px] opacity-50">Empty</span>}
              </motion.div>
