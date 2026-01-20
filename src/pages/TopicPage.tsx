@@ -18,6 +18,7 @@ const PathCompressionVisualizer = lazy(() => import('../components/visualizers/P
 const StateRootVisualizer = lazy(() => import('../components/visualizers/StateRootVisualizer'));
 const WhyBlockchainStateVisualizer = lazy(() => import('../components/visualizers/WhyBlockchainStateVisualizer'));
 const RLPVisualizer = lazy(() => import('../components/visualizers/RLPVisualizer'));
+const PatriciaTrieVisualizer = lazy(() => import('../components/visualizers/PatriciaTrieVisualizer'));
 
 const visualizerMap: Record<VisualizerType, React.ReactNode> = {
   'encoding': <NibbleVisualizer />,
@@ -29,6 +30,7 @@ const visualizerMap: Record<VisualizerType, React.ReactNode> = {
   'state-update': <StateUpdateVisualizer />,
   'proof': <MerkleProofVisualizer />,
   'rlp': <RLPVisualizer />,
+  'patricia-trie': <PatriciaTrieVisualizer />,
 };
 
 const VisualizerSkeleton = () => (

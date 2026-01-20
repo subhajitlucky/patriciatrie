@@ -1,322 +1,429 @@
-import React, { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Info, Fingerprint, Activity } from 'lucide-react';
-import { MerklePatriciaTrie } from '../../utils/mpt';
-import TrieNodeVisualizer from './TrieNodeVisualizer';
-import type { TrieNode } from '../../types/trie';
-import Tooltip from '../ui/Tooltip';
+import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
+import { motion } from 'framer-motion';
+import { GitBranch, Network, Hash, ArrowRight, Search, Activity, Cpu } from 'lucide-react';
 
+// --- SHARED TYPES ---
+interface VisualNode {
+  id: string;
+  label: string;
+  x?: number;
+  y?: number;
+  children?: VisualNode[];
+  isFound?: boolean; // Mark if this is the target
+}
+
+// --- DATASETS ---
+
+// 1. BST DATA (Alphabetical Order)
+const TREE_DATA: VisualNode = {
+  id: 'dog', label: 'dog',
+  children: [
+    {
+      id: 'car', label: 'car',
+      children: [
+        { id: 'cat', label: 'cat', isFound: true } // Target: cat
+      ]
+    },
+    {
+      id: 'elf', label: 'elf', isFound: false
+    }
+  ]
+};
+
+// 2. TRIE DATA
+const TRIE_DATA: VisualNode = {
+  id: 'root', label: 'root',
+  children: [
+    {
+      id: 'c', label: 'c',
+      children: [
+        {
+          id: 'ca', label: 'a',
+          children: [
+            { id: 'car', label: 'r', isWord: true },
+            { id: 'cat', label: 't', isWord: true, isFound: true }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'd', label: 'd',
+      children: [
+        {
+          id: 'do', label: 'o',
+          children: [
+            { id: 'dog', label: 'g', isWord: true }
+          ]
+        }
+      ]
+    }
+  ]
+} as any; 
+
+// 3. MAP DATA (Buckets)
+const MAP_BUCKETS = Array.from({ length: 6 }).map((_, i) => ({ id: `b${i}`, label: `0x0${i}` }));
+
+
+// --- MAIN CONTAINER ---
 const TrieComparisonVisualizer: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'trie' | 'tree' | 'map'>('trie');
-  const [searchKey, setSearchKey] = useState('car');
-  const [selectedNode, setSelectedNode] = useState<TrieNode | null>(null);
-  const [isMobile, setIsMobile] = useState(false);
+  const [activeTab, setActiveTab] = useState<'tree' | 'trie' | 'map'>('tree');
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [status, setStatus] = useState('Ready');
+  const [activePath, setActivePath] = useState<string[]>([]);
+  
+  // Reset state on tab change
+  useEffect(() => {
+    setActivePath([]);
+    setIsAnimating(false);
+    setStatus('Ready to Simulate');
+  }, [activeTab]);
 
-  React.useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 640);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  const handleSimulate = () => {
+    if (isAnimating) return;
+    setIsAnimating(true);
+    setActivePath([]);
+    setStatus('Initializing...');
 
-  const trie = useMemo(() => {
-    const t = new MerklePatriciaTrie();
-    t.insert('cat', 'meow');
-    t.insert('car', 'vroom');
-    t.insert('dog', 'woof');
-    t.insert('caravan', 'travel');
-    return t;
-  }, []);
+    if (activeTab === 'tree') simulateTree();
+    if (activeTab === 'trie') simulateTrie();
+    if (activeTab === 'map') simulateMap();
+  };
 
-  const highlightedNodes = useMemo(() => {
-    const proof = trie.getProof(searchKey);
-    const nodes = new Set<string>();
-    proof.forEach(node => {
-      if (node) nodes.add(node.hash);
-    });
-    return nodes;
-  }, [searchKey, trie]);
-
-  const stats = useMemo(() => {
-    const keyLen = searchKey.length;
-    const itemsCount = 4;
+  const simulateTree = () => {
+    const path = ['dog', 'car', 'cat'];
+    let step = 0;
     
-    return {
-      trie: {
-        complexity: 'O(k)',
-        steps: keyLen * 2,
-        explanation: 'The search depth is strictly bounded by the key length (nibbles), making it immune to "State Explosion" performance degradation.'
-      },
-      tree: {
-        complexity: 'O(log N)',
-        steps: Math.ceil(Math.log2(itemsCount)),
-        explanation: 'In a standard balanced tree, every new account added to the blockchain would make every search slightly slower for everyone.'
-      },
-      map: {
-        complexity: 'O(1)',
-        steps: 1,
-        explanation: 'Instant, but structurally disconnected. A map cannot prove that a specific account was part of a specific block without the entire dataset.'
+    const next = () => {
+      if (step >= path.length) {
+        setStatus('Found "cat"!');
+        setTimeout(() => setIsAnimating(false), 1500);
+        return;
       }
+      
+      const node = path[step];
+      setActivePath(prev => [...prev, node]);
+      
+      if (node === 'cat') setStatus('Match Found!');
+      else if (node === 'dog') setStatus('"cat" < "dog" → Go Left');
+      else if (node === 'car') setStatus('"cat" > "car" → Go Right');
+      
+      step++;
+      setTimeout(next, 1000);
     };
-  }, [searchKey]);
+    next();
+  };
+
+  const simulateTrie = () => {
+    const path = ['root', 'c', 'ca', 'cat'];
+    let step = 0;
+
+    const next = () => {
+      if (step >= path.length) {
+        setStatus('Found "cat"!');
+        setTimeout(() => setIsAnimating(false), 1500);
+        return;
+      }
+      
+      const node = path[step];
+      setActivePath(prev => [...prev, node]);
+      
+      if (node === 'root') setStatus('Start at Root');
+      else setStatus(`Follow '${node.slice(-1)}' edge...`);
+      
+      step++;
+      setTimeout(next, 800);
+    };
+    next();
+  };
+
+  const simulateMap = () => {
+    setStatus('Hashing "cat"...');
+    setActivePath(['hash']);
+    
+    setTimeout(() => {
+      setStatus('Hash: 0x94... (Index 3)');
+      setActivePath(['hash', 'beam']);
+      
+      setTimeout(() => {
+        setStatus('Direct Access: Bucket 3');
+        setActivePath(['hash', 'beam', 'b3']);
+        setTimeout(() => setIsAnimating(false), 1500);
+      }, 800);
+    }, 1000);
+  };
 
   return (
-    <div className="w-full h-full flex flex-col gap-6 lg:gap-8">
-      {/* Premium Header */}
-      <div className="relative group">
-        <div className="absolute -inset-1 bg-gradient-to-r from-primary to-secondary opacity-20 blur-xl group-hover:opacity-30 transition duration-1000"></div>
-        <div className="relative flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 p-4 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md border border-white/20 dark:border-neutral-800 rounded-3xl shadow-2xl">
-          <div className="flex-1 relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={20} />
-            <input 
-              type="text" 
-              value={searchKey}
-              onChange={(e) => setSearchKey(e.target.value.toLowerCase())}
-              placeholder="Trace key path (e.g., car, caravan)..."
-              className="w-full bg-transparent pl-12 pr-4 py-3 font-mono text-base lg:text-lg focus:ring-0 border-none outline-none dark:text-white placeholder:text-neutral-400"
-            />
-          </div>
+    <div className="w-full flex flex-col gap-6">
+      {/* Header / Controls */}
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white dark:bg-neutral-900 p-4 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm">
+        <div className="flex p-1 bg-neutral-100 dark:bg-neutral-950 rounded-2xl border border-neutral-200 dark:border-neutral-800">
+          <TabButton id="tree" icon={Network} label="BST Tree" active={activeTab} onClick={setActiveTab} />
+          <TabButton id="trie" icon={GitBranch} label="Trie" active={activeTab} onClick={setActiveTab} />
+          <TabButton id="map" icon={Hash} label="Hash Map" active={activeTab} onClick={setActiveTab} />
+        </div>
 
-          <div className="flex p-1.5 bg-neutral-100 dark:bg-neutral-950 rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-inner overflow-x-auto">
-            {(['trie', 'tree', 'map'] as const).map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`
-                  flex-1 min-w-[80px] px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 whitespace-nowrap cursor-pointer
-                  ${activeTab === tab 
-                    ? 'bg-primary text-white shadow-lg shadow-primary/30' 
-                    : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'}
-                `}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
+        <div className="flex items-center gap-4 w-full md:w-auto">
+           <div className="flex-1 md:flex-none text-right">
+              <div className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Target Key</div>
+              <div className="font-mono font-bold text-xl text-neutral-800 dark:text-neutral-200">"cat"</div>
+           </div>
+           <button
+             onClick={handleSimulate}
+             disabled={isAnimating}
+             className={`
+               px-8 py-3 rounded-xl font-black text-xs uppercase tracking-widest flex items-center gap-2 transition-all
+               ${isAnimating 
+                 ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-400 cursor-not-allowed' 
+                 : 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 hover:scale-105 shadow-lg'}
+             `}
+           >
+             {isAnimating ? <Activity className="animate-spin" size={14} /> : <Search size={14} />}
+             {isAnimating ? 'Running...' : 'Visualize Search'}
+           </button>
         </div>
       </div>
 
-      {/* Advanced Simulation Environment */}
-      <div className="relative w-full min-h-[400px] sm:min-h-[500px] lg:min-h-[600px] bg-white dark:bg-neutral-950 rounded-[32px] lg:rounded-[40px] border border-neutral-200 dark:border-neutral-800 p-4 sm:p-8 lg:p-12 shadow-2xl overflow-hidden flex items-center justify-center">
-        <div className="absolute inset-0 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:32px_32px] opacity-[0.03] dark:opacity-[0.05]" />
-        
-        <AnimatePresence mode="wait">
-          {activeTab === 'trie' && (
-            <motion.div 
-              key="trie"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="w-full h-full overflow-auto custom-scrollbar"
-            >
-              <div className="min-w-max min-h-full flex items-center justify-center p-4 sm:p-8 scale-[0.8] sm:scale-[0.9] lg:scale-100 origin-center transition-transform">
-                <TrieNodeVisualizer 
-                  nodeHash={trie.rootHash!} 
-                  getTrieNode={(h) => trie.getNode(h)} 
-                  affectedNodes={highlightedNodes}
-                  onNodeClick={setSelectedNode}
-                />
-              </div>
-            </motion.div>
-          )}
+      {/* Main Canvas */}
+      <div className="relative w-full min-h-[500px] bg-white dark:bg-neutral-950 rounded-[40px] border border-neutral-200 dark:border-neutral-800 p-8 md:p-12 flex items-center justify-center overflow-hidden">
+         <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(#262626_1px,transparent_1px)] [background-size:32px_32px] opacity-50 pointer-events-none" />
+         
+         {/* Status HUD */}
+         <div className="absolute top-6 left-6 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 px-4 py-3 rounded-2xl shadow-xl z-30 max-w-[200px] md:max-w-xs">
+            <div className="text-[10px] font-black uppercase text-neutral-400 tracking-widest mb-1">Process Log</div>
+            <div className="font-mono text-xs md:text-sm font-bold text-orange-500 truncate">
+               {status}
+            </div>
+         </div>
 
-          {activeTab === 'tree' && (
-            <motion.div 
-              key="tree"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="w-full h-full flex items-center justify-center p-2 sm:p-8 overflow-auto custom-scrollbar"
-            >
-               <div className="w-full max-w-[500px] aspect-[4/3] min-w-[320px]">
-                 <svg viewBox="0 0 400 300" className="w-full h-full drop-shadow-sm overflow-visible">
-                    <g className="text-neutral-200 dark:text-neutral-800">
-                      <line x1="200" y1="50" x2="100" y2="150" stroke="currentColor" strokeWidth="3" />
-                      <line x1="200" y1="50" x2="300" y2="150" stroke="currentColor" strokeWidth="3" />
-                      <line x1="100" y1="150" x2="50" y2="250" stroke="currentColor" strokeWidth="3" />
-                      <line x1="100" y1="150" x2="150" y2="250" stroke="currentColor" strokeWidth="3" />
-                    </g>
-                    
-                    {/* Nodes within SVG coordinate space */}
-                    <foreignObject x="150" y="25" width="100" height="50">
-                      <TreeNode label="car" active={searchKey === 'car'} />
-                    </foreignObject>
-                    <foreignObject x="50" y="125" width="100" height="50">
-                      <TreeNode label="cat" active={searchKey === 'cat'} />
-                    </foreignObject>
-                    <foreignObject x="250" y="125" width="100" height="50">
-                      <TreeNode label="dog" active={searchKey === 'dog'} />
-                    </foreignObject>
-                    <foreignObject x="0" y="225" width="100" height="50">
-                      <TreeNode label="caravan" active={searchKey === 'caravan'} />
-                    </foreignObject>
-                 </svg>
-               </div>
-            </motion.div>
-          )}
-
-          {activeTab === 'map' && (
-            <motion.div 
-              key="map"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="w-full h-full flex items-center justify-center p-4 overflow-auto custom-scrollbar"
-            >
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 w-full max-w-4xl scale-[0.8] sm:scale-100 origin-center min-w-[280px]">
-                {['cat', 'car', 'dog', 'caravan'].map((k) => (
-                  <motion.div 
-                    key={k}
-                    whileHover={{ y: -5 }}
-                    className={`
-                      relative p-3 sm:p-6 rounded-[24px] border-2 transition-all duration-300 flex flex-col items-center gap-2 sm:gap-3
-                      ${searchKey === k 
-                        ? 'border-primary bg-primary/5 shadow-xl scale-105' 
-                        : 'border-neutral-100 dark:border-neutral-900 bg-white dark:bg-neutral-900'}
-                    `}
-                  >
-                    <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-neutral-50 dark:bg-neutral-950 flex items-center justify-center text-xs sm:text-sm font-mono shadow-inner border border-neutral-100 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400">
-                      {Math.abs(k.split('').reduce((a,b) => a + b.charCodeAt(0), 0) % 100)}
-                    </div>
-                    <span className="font-bold text-xs sm:text-base tracking-tight text-neutral-900 dark:text-neutral-100 truncate w-full text-center">{k}</span>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Node Inspector Overlay */}
-        <AnimatePresence>
-          {selectedNode && (
-            <motion.div 
-              initial={isMobile ? { y: '100%', opacity: 0 } : { x: 300, opacity: 0 }}
-              animate={isMobile ? { y: 0, opacity: 1 } : { x: 0, opacity: 1 }}
-              exit={isMobile ? { y: '100%', opacity: 0 } : { x: 300, opacity: 0 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className={`
-                absolute z-50 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl shadow-2xl p-6 overflow-y-auto
-                bottom-0 left-0 right-0 w-full max-h-[70vh] rounded-t-[32px] border-t border-neutral-200 dark:border-neutral-800
-                sm:top-6 sm:right-6 sm:bottom-6 sm:left-auto sm:w-80 sm:max-h-none sm:h-auto sm:rounded-3xl sm:border sm:border-neutral-200 dark:sm:border-neutral-800
-              `}
-            >
-              <div className="flex justify-between items-center mb-8 sticky top-0 bg-inherit z-10 pb-2">
-                <h5 className="text-xs font-black uppercase tracking-widest text-primary">Node Inspector</h5>
-                <button 
-                  onClick={() => setSelectedNode(null)} 
-                  className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-full transition-colors cursor-pointer"
-                >
-                  ✕
-                </button>
-              </div>
-              
-              <div className="space-y-6 pb-6">
-                <div>
-                   <div className="flex items-center gap-2 text-neutral-400 mb-2">
-                      <Fingerprint size={14} />
-                      <span className="text-[10px] font-bold uppercase">Hash Signature</span>
-                   </div>
-                   <p className="font-mono text-xs break-all bg-neutral-100 dark:bg-neutral-950 p-3 rounded-xl border border-neutral-200 dark:border-neutral-800 leading-relaxed">
-                     {selectedNode.hash}
-                   </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-3 bg-neutral-50 dark:bg-neutral-950 rounded-2xl border border-neutral-100 dark:border-neutral-800">
-                    <span className="text-[8px] font-black text-neutral-400 uppercase block mb-1">Type</span>
-                    <p className="text-xs font-bold text-primary">{selectedNode.type}</p>
-                  </div>
-                  <div className="p-3 bg-neutral-50 dark:bg-neutral-950 rounded-2xl border border-neutral-100 dark:border-neutral-800">
-                    <span className="text-[8px] font-black text-neutral-400 uppercase block mb-1">Depth</span>
-                    <p className="text-xs font-bold">Node Level 4</p>
-                  </div>
-                </div>
-
-                <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10">
-                   <p className="text-[11px] text-neutral-500 dark:text-neutral-400 leading-relaxed italic">
-                     This node is a cryptographic commitment to its children. Any change below it will cascade a new hash up to the Root.
-                   </p>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+         <div className="relative z-10 w-full h-full flex items-center justify-center">
+            {activeTab === 'tree' && <TreeEngine data={TREE_DATA} activePath={activePath} />}
+            {activeTab === 'trie' && <TreeEngine data={TRIE_DATA} activePath={activePath} isTrie />}
+            {activeTab === 'map' && <MapEngine buckets={MAP_BUCKETS} activePath={activePath} />}
+         </div>
       </div>
-
-      {/* Analytical Insights Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Performance Engine */}
-        <div className="lg:col-span-5 relative group overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary to-secondary opacity-0 group-hover:opacity-10 transition-opacity duration-500" />
-          <div className="h-full p-8 bg-neutral-900 dark:bg-neutral-900 text-white rounded-[40px] border border-neutral-800 flex flex-col justify-between gap-8">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center text-primary">
-                 <Activity size={20} />
-              </div>
-              <h4 className="text-xs font-black uppercase tracking-[0.2em]">Engine Metrics</h4>
-            </div>
-
-            <div className="flex flex-row justify-between items-end">
-              <div>
-                <span className="text-[10px] uppercase font-black opacity-50 block mb-2">Complexity Class</span>
-                <Tooltip content={stats[activeTab].explanation}>
-                  <p className="text-5xl font-black bg-gradient-to-r from-white to-white/50 bg-clip-text text-transparent cursor-help">{stats[activeTab].complexity}</p>
-                </Tooltip>
-              </div>
-              <div className="text-right">
-                <span className="text-[10px] uppercase font-black opacity-50 block mb-2">IO Traversal</span>
-                <Tooltip content="Estimated number of database lookups">
-                  <p className="text-3xl font-black text-primary cursor-help">{stats[activeTab].steps} ops</p>
-                </Tooltip>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Observation Matrix */}
-        <div className="lg:col-span-7 p-8 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-[40px] shadow-sm">
-           <div className="flex items-center gap-3 mb-8">
-              <div className="w-10 h-10 rounded-xl bg-neutral-100 dark:bg-neutral-950 flex items-center justify-center text-primary border border-neutral-200 dark:border-neutral-800">
-                 <Info size={20} />
-              </div>
-              <h4 className="text-xs font-black uppercase tracking-[0.2em] text-neutral-400">Advanced Observation Matrix</h4>
-           </div>
-           
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[
-                { title: 'Path Tracing', desc: 'Type "caravan" and watch the path pulse. Notice how "car" and "caravan" diverge exactly at the "a" nibble.' },
-                { title: 'Verification', desc: 'Every pulse you see represents a SHA-256 (or Keccak) verification point in a real blockchain.' }
-              ].map((item, i) => (
-                <div key={i} className="group p-5 rounded-3xl bg-neutral-50 dark:bg-neutral-950 border border-neutral-100 dark:border-neutral-800 hover:border-primary/30 transition-all duration-300">
-                  <div className="w-8 h-8 rounded-full bg-white dark:bg-neutral-900 flex items-center justify-center text-[10px] font-black mb-3 border border-neutral-200 dark:border-neutral-700 group-hover:bg-primary group-hover:text-white transition-colors">
-                    0{i+1}
-                  </div>
-                  <h5 className="font-black text-sm mb-2 text-neutral-900 dark:text-neutral-100">{item.title}</h5>
-                  <p className="text-[11px] text-neutral-600 dark:text-neutral-400 leading-relaxed font-medium">{item.desc}</p>
-                </div>
-              ))}
-           </div>
-        </div>
+      
+      {/* Legend / Info */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+         <InfoCard 
+           label="Complexity" 
+           value={activeTab === 'tree' ? 'O(log N)' : activeTab === 'trie' ? 'O(k)' : 'O(1)'}
+           desc={activeTab === 'tree' ? 'Depends on data size' : activeTab === 'trie' ? 'Depends on key length' : 'Instant access'}
+         />
+         <InfoCard 
+           label="Structure" 
+           value={activeTab === 'tree' ? 'Binary Tree' : activeTab === 'trie' ? 'Prefix Tree' : 'Hash Table'}
+           desc={activeTab === 'tree' ? 'Values sorted by comparison' : activeTab === 'trie' ? 'Values stored by path' : 'Values stored by index'}
+         />
+         <InfoCard 
+           label="Blockchain Fit" 
+           value={activeTab === 'trie' ? 'Perfect' : 'Poor'}
+           desc={activeTab === 'trie' ? 'Deterministic & Merkle-compatible' : 'Hard to verify cryptographically'}
+           highlight={activeTab === 'trie'}
+         />
       </div>
     </div>
   );
 };
 
-const TreeNode = ({ label, active }: { label: string, active: boolean }) => (
-  <motion.div 
-    animate={{ 
-      scale: active ? 1.1 : 1,
-      boxShadow: active ? '0 10px 20px rgba(59,130,246,0.2)' : '0 2px 4px rgba(0,0,0,0.05)'
-    }}
+// --- SUB-COMPONENTS ---
+
+const TabButton = ({ id, icon: Icon, label, active, onClick }: any) => (
+  <button
+    onClick={() => onClick(id)}
     className={`
-      w-full h-full flex items-center justify-center rounded-xl border-2 text-xs font-black transition-all duration-500
-      ${active 
-        ? 'bg-primary text-white border-primary' 
-        : 'bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 text-neutral-700 dark:text-neutral-300'}
+      flex items-center gap-2 px-4 md:px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all
+      ${active === id 
+        ? 'bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white shadow-md' 
+        : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'}
     `}
   >
-    {label}
-  </motion.div>
+    <Icon size={14} /> <span className="hidden md:inline">{label}</span>
+  </button>
 );
+
+const InfoCard = ({ label, value, desc, highlight }: any) => (
+  <div className={`p-5 rounded-2xl border ${highlight ? 'bg-orange-500/5 border-orange-500/20' : 'bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800'}`}>
+     <div className="text-[10px] font-black uppercase text-neutral-400 tracking-widest mb-1">{label}</div>
+     <div className={`text-xl font-black mb-1 ${highlight ? 'text-orange-600 dark:text-orange-400' : 'text-neutral-900 dark:text-white'}`}>{value}</div>
+     <div className="text-xs font-medium text-neutral-500">{desc}</div>
+  </div>
+);
+
+// --- ENGINES ---
+
+// 1. Tree/Trie Engine
+const TreeEngine = ({ data, activePath, isTrie = false }: { data: VisualNode, activePath: string[], isTrie?: boolean }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [nodes, setNodes] = useState<Map<string, {x:number, y:number}>>(new Map());
+
+  const updatePositions = useCallback(() => {
+    if (!containerRef.current) return;
+    const parentRect = containerRef.current.getBoundingClientRect();
+    const newNodes = new Map();
+    
+    containerRef.current.querySelectorAll('[data-id]').forEach(el => {
+      const rect = el.getBoundingClientRect();
+      newNodes.set(el.getAttribute('data-id'), {
+        x: rect.left - parentRect.left + rect.width/2,
+        y: rect.top - parentRect.top + rect.height/2
+      });
+    });
+    setNodes(newNodes);
+  }, [data]);
+
+  useLayoutEffect(() => {
+    updatePositions();
+    window.addEventListener('resize', updatePositions);
+    return () => window.removeEventListener('resize', updatePositions);
+  }, [updatePositions]);
+
+  return (
+    <div className="w-full h-full overflow-auto custom-scrollbar flex items-center justify-center">
+      <div ref={containerRef} className="relative p-4 md:p-8 flex items-center justify-center min-w-max origin-center">
+         <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-visible -z-10">
+            <RecursiveLines node={data} nodes={nodes} activePath={activePath} isTrie={isTrie} />
+         </svg>
+         <div className="relative z-10">
+            <RecursiveNode node={data} activePath={activePath} isTrie={isTrie} />
+         </div>
+      </div>
+    </div>
+  );
+};
+
+const RecursiveNode = ({ node, activePath, isTrie }: any) => {
+  const isActive = activePath.includes(node.id);
+  const isTarget = node.isFound && isActive && activePath[activePath.length - 1] === node.id;
+
+  return (
+    <div className="flex flex-row items-center gap-8 md:gap-24">
+      <div data-id={node.id} className="relative">
+         <motion.div
+           animate={{
+             scale: isActive ? 1.1 : 1,
+             borderColor: isActive ? (isTrie ? '#ec4899' : '#3b82f6') : (isTarget ? '#10b981' : '#e5e5e5'),
+             boxShadow: isActive ? '0 0 15px rgba(0,0,0,0.1)' : 'none'
+           }}
+           className={`
+             w-10 h-10 md:w-14 md:h-14 rounded-full border-2 flex items-center justify-center font-mono font-bold text-[10px] md:text-sm shadow-sm
+             ${isActive ? 'bg-neutral-50 dark:bg-neutral-800' : 'bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800'}
+             ${isActive ? (isTrie ? 'text-pink-600 dark:text-pink-400 border-pink-500' : 'text-blue-600 dark:text-blue-400 border-blue-500') : 'text-neutral-500 dark:text-neutral-400'}
+             ${isTarget ? '!bg-emerald-500 !border-emerald-500 !text-white' : ''}
+           `}
+         >
+           {node.label}
+         </motion.div>
+         {isTarget && (
+           <div className="absolute -bottom-5 md:-bottom-6 left-1/2 -translate-x-1/2 bg-emerald-500 text-white text-[8px] font-black uppercase px-2 py-0.5 rounded-full whitespace-nowrap">
+             Target
+           </div>
+         )}
+      </div>
+      
+      {node.children && (
+        <div className="flex flex-col gap-4 md:gap-12">
+          {node.children.map((child: any) => (
+            <RecursiveNode key={child.id} node={child} activePath={activePath} isTrie={isTrie} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const RecursiveLines = ({ node, nodes, activePath, isTrie }: any) => {
+  if (!node.children) return null;
+  return (
+    <>
+      {node.children.map((child: any) => {
+        const start = nodes.get(node.id);
+        const end = nodes.get(child.id);
+        if (!start || !end) return null;
+
+        // Tighter curve for mobile
+        const curve = 30; 
+        const d = `M ${start.x} ${start.y} C ${start.x + curve} ${start.y}, ${end.x - curve} ${end.y}, ${end.x} ${end.y}`;
+        const isActive = activePath.includes(child.id);
+
+        return (
+          <g key={child.id}>
+            <path d={d} strokeWidth="2" fill="none" className="stroke-neutral-300 dark:stroke-neutral-700" />
+            {isActive && (
+              <motion.path 
+                d={d} 
+                stroke={isTrie ? '#ec4899' : '#3b82f6'} 
+                strokeWidth="3" 
+                fill="none" 
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 0.5 }}
+              />
+            )}
+            <RecursiveLines node={child} nodes={nodes} activePath={activePath} isTrie={isTrie} />
+          </g>
+        );
+      })}
+    </>
+  );
+};
+
+// 2. Hash Map Engine
+const MapEngine = ({ buckets, activePath }: any) => {
+  const isHashing = activePath.includes('hash');
+  const isFound = activePath.includes('b3');
+
+  return (
+    <div className="flex flex-col md:flex-row items-center gap-6 md:gap-16 w-full justify-center py-8">
+       {/* Input Key */}
+       <div className="flex flex-col items-center gap-2">
+          <div className="w-14 h-14 md:w-20 md:h-20 bg-white dark:bg-neutral-900 border-2 border-neutral-200 dark:border-neutral-800 rounded-2xl flex items-center justify-center font-mono font-black text-sm md:text-lg shadow-sm">
+             "cat"
+          </div>
+          <span className="text-[10px] font-black uppercase text-neutral-400">Key</span>
+       </div>
+
+       {/* Arrow */}
+       <div className="text-neutral-300 dark:text-neutral-700 rotate-90 md:rotate-0">
+          <ArrowRight size={20} className="md:w-6 md:h-6" />
+       </div>
+
+       {/* Hash Function */}
+       <div className="relative">
+          <motion.div 
+            animate={{ scale: isHashing ? 1.1 : 1, borderColor: isHashing ? '#f97316' : '#e5e5e5' }}
+            className={`w-20 h-20 md:w-32 md:h-32 rounded-full border-4 flex flex-col items-center justify-center bg-white dark:bg-neutral-900 z-10 relative transition-colors ${isHashing ? 'border-orange-500' : 'border-neutral-200 dark:border-neutral-800'}`}
+          >
+             <Cpu size={24} className={`md:w-8 md:h-8 ${isHashing ? 'text-orange-500' : 'text-neutral-300'}`} />
+             <span className="text-[8px] md:text-[10px] font-black uppercase mt-2 text-neutral-500">Hash Fn</span>
+          </motion.div>
+       </div>
+
+       {/* Arrow 2 (Mobile only or Desktop) */}
+       <div className="text-neutral-300 dark:text-neutral-700 rotate-90 md:rotate-0">
+          <ArrowRight size={20} className="md:w-6 md:h-6" />
+       </div>
+
+       {/* Buckets */}
+       <div className="grid grid-cols-2 md:grid-cols-1 gap-2 w-full max-w-[280px] md:max-w-[200px]">
+          {buckets.map((b: any) => (
+             <motion.div 
+               key={b.id}
+               animate={{ 
+                 scale: b.id === 'b3' && isFound ? 1.05 : 1,
+                 borderColor: b.id === 'b3' && isFound ? '#10b981' : ''
+               }}
+               className={`
+                 w-full p-2 rounded-lg border-2 border-neutral-200 dark:border-neutral-800 flex items-center justify-between px-3 md:px-4 bg-white dark:bg-neutral-900 transition-colors
+                 ${b.id === 'b3' && isFound ? '!border-emerald-500 !bg-emerald-50 dark:!bg-emerald-900/20 text-emerald-600' : 'text-neutral-500'}
+               `}
+             >
+                <span className="font-mono text-[10px] md:text-xs font-bold">{b.label}</span>
+                {b.id === 'b3' && isFound ? <span className="font-black text-[8px] md:text-xs">VALUE</span> : <span className="text-[8px] md:text-[10px] opacity-50">Empty</span>}
+             </motion.div>
+          ))}
+       </div>
+    </div>
+  );
+};
 
 export default TrieComparisonVisualizer;

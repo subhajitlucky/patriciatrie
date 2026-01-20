@@ -216,7 +216,16 @@ const TiltCard = () => {
   );
 };
 
-const BentoItem = ({ title, desc, icon: Icon, colSpan = "", bg, delay }: any) => (
+interface BentoItemProps {
+  title: string;
+  desc: string;
+  icon: React.ElementType;
+  colSpan?: string;
+  bg: string;
+  delay: number;
+}
+
+const BentoItem = ({ title, desc, icon: Icon, colSpan = "", bg, delay }: BentoItemProps) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     whileInView={{ opacity: 1, y: 0 }}

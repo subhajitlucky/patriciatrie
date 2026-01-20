@@ -9,7 +9,8 @@ export type VisualizerType =
   | 'state' 
   | 'state-update' 
   | 'proof'
-  | 'rlp';
+  | 'rlp'
+  | 'patricia-trie';
 
 export interface TopicContent {
   id: string;

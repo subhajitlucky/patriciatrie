@@ -1,4 +1,5 @@
 import { whyTrie } from '../content/topics/why-trie';
+import { patriciaTrie } from '../content/topics/patricia-trie';
 import { trieVsMap } from '../content/topics/trie-vs-map';
 import { nibblePaths } from '../content/topics/nibble-paths';
 import { nodeTypes } from '../content/topics/node-types';
@@ -11,6 +12,7 @@ import type { TopicContent } from '../types/topic';
 
 export const topicData: Record<string, TopicContent> = {
   'why-trie': whyTrie,
+  'patricia-trie': patriciaTrie,
   'trie-vs-map': trieVsMap,
   'nibble-paths': nibblePaths,
   'node-types': nodeTypes,
